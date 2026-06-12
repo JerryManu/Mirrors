@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="theme-color" content="#08080c"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Mirrors"/>
+<link rel="manifest" href="manifest.json"/>
+<title>Mirrors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,300;1,9..144,400;1,9..144,500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#08080c;--s1:#101018;--s2:#171722;--s3:#1f1f2e;--border:rgba(160,160,210,0.08);--border2:rgba(160,160,210,0.04);--text:#eceaf6;--sub:#8a85a8;--muted:#403c5c;--a1:#a78bfa;--a2:#f0abfc;--a3:#60a5fa;--a4:#5eead4;--gold:#fcd34d;--rose:#fb7185;--sage:#86efac;--amber:#fb923c;--grad:linear-gradient(135deg,#a78bfa,#f0abfc);--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh;overflow-x:hidden}
+body{padding-bottom:calc(72px + var(--safe-bot))}
+.bg-grad{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(167,139,250,0.12),transparent),radial-gradient(ellipse 60% 40% at 100% 100%,rgba(96,165,250,0.07),transparent),radial-gradient(ellipse 50% 40% at 0% 60%,rgba(240,171,252,0.05),transparent)}
+.grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;z-index:1;opacity:0;pointer-events:none;transition:opacity 0.5s cubic-bezier(.4,0,.2,1)}
+.screen.active{opacity:1;pointer-events:all}
+.screen.scroll{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(8,8,12,0.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);display:none;padding:8px 0 calc(8px + var(--safe-bot));grid-template-columns:repeat(3,1fr)}
+.bnav.show{display:grid}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:6px;color:var(--muted);font-family:'Sora',sans-serif;font-size:10px;font-weight:500;transition:color 0.2s}
+.bnav-btn.on{color:var(--a1)}
+.bnav-ico{font-size:20px;line-height:1}
+.splash-logo{font-family:'Fraunces',serif;font-size:76px;font-style:italic;font-weight:400;background:linear-gradient(135deg,#a78bfa,#f0abfc,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;letter-spacing:-2px;animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.splash-sub{font-size:12px;color:var(--sub);letter-spacing:5px;text-transform:uppercase;margin-bottom:8px}
+.splash-tag{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--muted);margin-bottom:14px;text-align:center;max-width:300px;line-height:1.65}
+.disclaimer{background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.12);border-radius:14px;padding:14px 16px;margin-bottom:36px;max-width:340px;text-align:left}
+.disclaimer p{font-size:11px;line-height:1.7;color:var(--muted)}
+.disclaimer strong{color:var(--sub);font-weight:600}
+.splash-btn{padding:16px 52px;background:var(--grad);border:none;border-radius:100px;color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 0 50px rgba(167,139,250,0.35);transition:transform 0.2s}
+.splash-btn:active{transform:scale(0.96)}
+.splash-note{margin-top:20px;font-size:11px;color:var(--muted);letter-spacing:1px}
+.ob-wrap{width:100%;max-width:400px}
+.ob-step{display:none}
+.ob-step.show{display:block;animation:slideUp 0.5s cubic-bezier(.4,0,.2,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.ob-label{font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--a1);margin-bottom:14px}
+.ob-q{font-family:'Fraunces',serif;font-size:27px;font-style:italic;line-height:1.3;margin-bottom:26px}
+.name-in{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:16px;color:var(--text);font-family:'Sora',sans-serif;font-size:18px;padding:16px 20px;outline:none;transition:border-color 0.2s}
+.name-in:focus{border-color:var(--a1)}
+.name-in::placeholder{color:var(--muted)}
+.sl-wrap{margin-bottom:26px}
+.sl-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:14px}
+.sl{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;outline:none;background:linear-gradient(to right,var(--a4),var(--a1),var(--a2));cursor:pointer}
+.sl::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 0 16px rgba(167,139,250,0.6);cursor:pointer}
+.sl-val{text-align:center;font-family:'Fraunces',serif;font-style:italic;font-size:20px;color:var(--a1);margin-top:14px}
+.ob-next{width:100%;padding:16px;background:var(--grad);border:none;border-radius:16px;color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;transition:transform 0.2s}
+.ob-next:active{transform:scale(0.98)}
+.g-wrap{width:100%;max-width:440px;position:relative;z-index:1;padding:0 4px}
+.g-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-top:calc(var(--safe-top) + 12px)}
+.g-brand{font-family:'Fraunces',serif;font-size:22px;font-style:italic;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.g-streak{display:flex;align-items:center;gap:6px;background:var(--s1);border:1px solid var(--border);border-radius:100px;padding:6px 14px}
+.streak-n{font-size:13px;font-weight:700;color:var(--gold)}
+.prog-w{margin-bottom:18px}
+.prog-track{height:4px;background:var(--s2);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;background:var(--grad);transition:width 0.7s cubic-bezier(.4,0,.2,1);box-shadow:0 0 10px rgba(167,139,250,0.4)}
+.prog-txt{display:flex;justify-content:space-between;margin-top:7px;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0.5px}
+.q-card{background:linear-gradient(160deg,var(--s1),rgba(16,16,24,0.5));border:1px solid var(--border);border-radius:26px;padding:28px 22px;margin-bottom:16px;position:relative;overflow:hidden;animation:cardIn 0.5s cubic-bezier(.4,0,.2,1)}
+@keyframes cardIn{from{opacity:0;transform:scale(0.97) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.q-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#a78bfa,#f0abfc,#60a5fa,#5eead4)}
+.q-day{font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.q-cat{display:inline-flex;align-items:center;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.18);border-radius:100px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--a1);margin-bottom:14px;position:relative;z-index:1}
+.q-emoji{font-size:32px;margin-bottom:12px;display:block;position:relative;z-index:1}
+.q-text{font-family:'Fraunces',serif;font-size:20px;font-style:italic;font-weight:400;line-height:1.55;position:relative;z-index:1}
+.answers{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.ans{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:15px 16px;text-align:left;cursor:pointer;font-family:'Sora',sans-serif;font-size:13px;font-weight:400;color:rgba(236,234,246,0.8);line-height:1.5;transition:all 0.25s cubic-bezier(.4,0,.2,1);display:flex;align-items:flex-start;gap:11px}
+.ans:active{transform:scale(0.99)}
+.ans.sel{border-color:var(--a1);color:var(--text);background:linear-gradient(135deg,rgba(167,139,250,0.1),rgba(240,171,252,0.04));box-shadow:0 0 20px rgba(167,139,250,0.12)}
+.ans-ltr{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:7px;background:var(--s3);font-size:10px;font-weight:700;color:var(--sub);flex-shrink:0;transition:all 0.25s;margin-top:1px}
+.ans.sel .ans-ltr{background:var(--a1);color:#fff}
+.reaction{padding:18px;background:linear-gradient(135deg,rgba(167,139,250,0.05),rgba(96,165,250,0.03));border:1px solid rgba(167,139,250,0.12);border-radius:16px;margin-bottom:14px;display:none}
+.reaction.show{display:block;animation:revealUp 0.5s cubic-bezier(.4,0,.2,1)}
+@keyframes revealUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.r-emoji{font-size:24px;margin-bottom:8px;text-align:center}
+.r-txt{font-family:'Fraunces',serif;font-size:15px;font-style:italic;line-height:1.65;color:var(--text);text-align:center}
+.primary-btn{width:100%;padding:16px;background:var(--grad);border:none;border-radius:16px;color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 8px 32px rgba(167,139,250,0.25);transition:opacity 0.4s,transform 0.2s}
+.primary-btn:active{transform:scale(0.98)}
+.primary-btn.hidden{opacity:0;pointer-events:none}
+.mind-wrap{width:100%;max-width:440px;z-index:1;padding:0 4px}
+.phase-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-top:calc(var(--safe-top) + 12px)}
+.phase-back{background:var(--s1);border:1px solid var(--border);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub);font-size:14px;flex-shrink:0}
+.phase-title{font-family:'Fraunces',serif;font-size:20px;font-style:italic;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.j-sec{background:linear-gradient(160deg,var(--s1),rgba(16,16,24,0.5));border:1px solid var(--border);border-radius:22px;padding:22px;margin-bottom:14px;animation:cardIn 0.5s cubic-bezier(.4,0,.2,1)}
+.j-sec-hd{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.j-sec-hd.open{margin-bottom:18px}
+.j-sec-ico{font-size:20px;margin-right:10px}
+.j-sec-ttl{font-family:'Fraunces',serif;font-size:17px;font-style:italic}
+.j-chev{font-size:10px;color:var(--muted);transition:transform 0.25s;display:inline-block}
+.j-chev.open{transform:rotate(180deg)}
+.j-body{display:none}
+.j-body.open{display:block}
+.j-num{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--a1);margin-bottom:7px}
+.j-q{font-family:'Fraunces',serif;font-size:16px;font-style:italic;line-height:1.55;margin-bottom:4px}
+.j-sub{font-size:11px;color:var(--muted);margin-bottom:11px;font-style:italic}
+.j-ta{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;line-height:1.65;padding:13px 15px;resize:none;min-height:85px;outline:none;transition:border-color 0.2s;margin-bottom:18px}
+.j-ta:focus{border-color:rgba(167,139,250,0.25)}
+.j-ta::placeholder{color:var(--muted)}
+.j-ta:disabled{opacity:0.45;cursor:not-allowed}
+.j-ta.short{min-height:58px}
+.grat-item{display:flex;align-items:flex-start;gap:11px;margin-bottom:12px}
+.grat-n{font-family:'Fraunces',serif;font-size:26px;font-style:italic;color:var(--muted);flex-shrink:0;line-height:1.15;margin-top:6px}
+.grat-in{flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:11px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:13px 15px;outline:none;transition:border-color 0.2s;width:100%}
+.grat-in:focus{border-color:rgba(252,211,77,0.35)}
+.grat-in::placeholder{color:var(--muted)}
+.grat-in:disabled{opacity:0.45}
+.score-row{display:flex;gap:9px;justify-content:center;margin:16px 0 8px}
+.score-btn{width:54px;height:54px;border-radius:13px;border:1px solid var(--border);background:var(--s2);color:var(--sub);font-family:'Sora',sans-serif;font-size:19px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center}
+.score-btn:active{transform:scale(0.93)}
+.score-btn.sel{border-color:var(--a1);color:var(--text);background:rgba(167,139,250,0.14);box-shadow:0 0 18px rgba(167,139,250,0.18)}
+.score-btn[data-v="1"].sel{border-color:var(--rose);background:rgba(251,113,133,0.12);color:var(--rose)}
+.score-btn[data-v="2"].sel{border-color:var(--amber);background:rgba(251,146,60,0.12);color:var(--amber)}
+.score-btn[data-v="3"].sel{border-color:var(--gold);background:rgba(252,211,77,0.12);color:var(--gold)}
+.score-btn[data-v="4"].sel{border-color:var(--a3);background:rgba(96,165,250,0.12);color:var(--a3)}
+.score-btn[data-v="5"].sel{border-color:var(--sage);background:rgba(134,239,172,0.12);color:var(--sage)}
+.score-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:14px;padding:0 2px}
+.score-expand{animation:revealUp 0.4s cubic-bezier(.4,0,.2,1)}
+.quote-card{background:linear-gradient(160deg,rgba(167,139,250,0.06),rgba(96,165,250,0.03));border:1px solid rgba(167,139,250,0.1);border-radius:18px;padding:22px;margin-bottom:14px;text-align:center}
+.quote-ico{font-size:26px;margin-bottom:10px}
+.quote-txt{font-family:'Fraunces',serif;font-size:16px;font-style:italic;line-height:1.75;color:var(--text)}
+.saved-badge{text-align:center;font-size:12px;color:var(--a4);font-weight:500;opacity:0;transition:opacity 0.3s;margin-bottom:10px}
+.saved-badge.show{opacity:1}
+.wk-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:90;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.wk-overlay.show{display:flex}
+.wk-modal{background:var(--s1);border:1px solid var(--border);border-radius:28px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;padding:28px 24px;position:relative;animation:popIn 0.5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{opacity:0;transform:scale(0.88)}to{opacity:1;transform:scale(1)}}
+.wk-close{position:absolute;top:18px;right:18px;background:var(--s2);border:none;border-radius:50%;width:32px;height:32px;color:var(--sub);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.wk-title{font-family:'Fraunces',serif;font-size:26px;font-style:italic;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.wk-sub{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:22px}
+.wk-section{margin-bottom:20px}
+.wk-lbl{font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--a1);margin-bottom:10px}
+.wk-txt{font-family:'Fraunces',serif;font-size:15px;font-style:italic;line-height:1.75;color:var(--text)}
+.persona-card{border-radius:18px;padding:20px;margin-bottom:20px;position:relative;overflow:hidden}
+.trait-bars{margin-bottom:4px}
+.tb-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.tb-label{font-size:11px;color:var(--sub);width:120px;flex-shrink:0;text-align:right}
+.tb-track{flex:1;height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
+.tb-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.tb-val{font-size:10px;font-weight:600;color:var(--sub);width:24px;text-align:right;flex-shrink:0}
+.mood-chart{display:flex;align-items:flex-end;gap:6px;height:60px;margin-bottom:6px}
+.mood-bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.mood-bar-inner{width:100%;border-radius:4px 4px 0 0;transition:height 0.8s cubic-bezier(.4,0,.2,1);min-height:4px}
+.mood-bar-day{font-size:9px;color:var(--muted);letter-spacing:0.5px}
+.mood-bar-num{font-size:10px;font-weight:600}
+.sw-wrap{width:100%;max-width:440px;z-index:1;padding:0 4px}
+.sw-hdr{padding-top:calc(var(--safe-top) + 16px);margin-bottom:20px}
+.sw-title{font-family:'Fraunces',serif;font-size:26px;font-style:italic;background:linear-gradient(135deg,#a78bfa,#f0abfc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.sw-sub{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.sw-quota{display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:20px}
+.sw-quota-txt{font-size:12px;color:var(--sub)}
+.sw-quota-num{font-size:14px;font-weight:700;color:var(--a1);margin-left:auto}
+.sw-cat-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border2)}
+.sw-cat-name{font-size:13px;font-weight:600;color:var(--text)}
+.sw-cat-meta{font-size:11px;color:var(--muted)}
+.sw-cat-chev{font-size:10px;color:var(--muted);transition:transform 0.2s;display:inline-block;margin-left:8px}
+.sw-cat-chev.open{transform:rotate(180deg)}
+.sw-cat-body{display:none;padding:4px 16px 8px}
+.sw-cat-body.open{display:block}
+.sw-q-row{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--border2);cursor:pointer}
+.sw-q-row:last-child{border-bottom:none}
+.sw-q-txt{font-family:'Fraunces',serif;font-size:14px;font-style:italic;line-height:1.5;color:rgba(236,234,246,0.8);flex:1}
+.sw-q-ico{font-size:15px;flex-shrink:0;margin-top:2px}
+.sw-q-row.answered .sw-q-txt{color:var(--muted)}
+.sw-modal{background:var(--s1);border:1px solid var(--border);border-radius:28px;width:100%;max-width:420px;padding:26px 22px;position:relative;animation:popIn 0.4s cubic-bezier(.34,1.56,.64,1)}
+.sw-modal-q{font-family:'Fraunces',serif;font-size:18px;font-style:italic;line-height:1.55;margin-bottom:6px;color:var(--text)}
+.sw-modal-cat{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--a1);margin-bottom:12px}
+.sw-modal-note{font-size:11px;color:var(--muted);font-style:italic;margin-bottom:14px;line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid var(--a1)}
+.rep-wrap{width:100%;max-width:440px;padding:26px 4px 50px}
+.rep-hero{text-align:center;margin-bottom:26px;padding-top:calc(var(--safe-top) + 16px)}
+.rep-title{font-family:'Fraunces',serif;font-size:38px;font-style:italic;background:linear-gradient(135deg,#a78bfa,#f0abfc,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;letter-spacing:-1px}
+.rep-sub{font-size:11px;color:var(--sub);letter-spacing:2px;text-transform:uppercase}
+.rep-card{background:linear-gradient(160deg,var(--s1),rgba(16,16,24,0.4));border:1px solid var(--border);border-radius:22px;padding:22px;margin-bottom:12px}
+.rep-lbl{font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--a1);margin-bottom:12px}
+.rep-txt{font-family:'Fraunces',serif;font-size:15px;font-style:italic;line-height:1.85;color:var(--text)}
+.tr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.tr{background:linear-gradient(160deg,var(--s1),rgba(16,16,24,0.5));border:1px solid var(--border);border-radius:16px;padding:16px 13px;text-align:center}
+.tr-ico{font-size:24px;margin-bottom:7px}
+.tr-name{font-size:10px;font-weight:600;color:var(--sub);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:7px;line-height:1.4}
+.tr-bar{height:3px;background:var(--s3);border-radius:2px;overflow:hidden}
+.tr-fill{height:100%;border-radius:2px;background:var(--grad)}
+.mood-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px 0;border-bottom:1px solid var(--border2)}
+.mood-row:last-child{border-bottom:none}
+.mood-day{font-size:11px;color:var(--sub);min-width:64px;font-weight:500}
+.mood-bar-w{flex:1;height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
+.mood-bar-f{height:100%;border-radius:2px}
+.mood-sc{font-size:13px;font-weight:700;min-width:18px;text-align:right}
+.rep-btn{width:100%;padding:16px;background:var(--grad);border:none;border-radius:16px;color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px}
+.load-orb{width:60px;height:60px;border-radius:50%;background:var(--grad);margin:0 auto 22px;animation:pulse 1.6s ease-in-out infinite;box-shadow:0 0 50px rgba(167,139,250,0.4)}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:0.65}}
+.load-txt{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--sub);text-align:center}
+.toast{position:fixed;bottom:calc(82px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);background:var(--s3);border:1px solid var(--border);border-radius:100px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--text);opacity:0;transition:all 0.35s;z-index:200;max-width:calc(100% - 40px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+</style>
+</head>
+<body>
+<div class="bg-grad"></div>
+<div class="grain"></div>
+<div class="toast" id="toast"></div>
+
+<div class="wk-overlay" id="wkOverlay">
+  <div class="wk-modal" id="wkModal">
+    <button class="wk-close" onclick="closeWeekly()">&#10005;</button>
+    <div class="wk-title" id="wkTitle">Week 1 Complete</div>
+    <div class="wk-sub" id="wkSub">Your first reflection</div>
+    <div id="wkContent"></div>
+    <button class="primary-btn" style="margin-top:16px" onclick="closeWeekly()">Carry this forward</button>
+  </div>
+</div>
+
+<div class="wk-overlay" id="swOverlay">
+  <div class="sw-modal">
+    <button class="wk-close" onclick="closeShadow()">&#10005;</button>
+    <div class="sw-modal-cat" id="swModalCat"></div>
+    <div class="sw-modal-q" id="swModalQ"></div>
+    <div class="sw-modal-note">This is your private space. Write freely &#8212; no one else sees this.</div>
+    <textarea class="j-ta" id="swTa" placeholder="Take all the time you need..." style="min-height:120px;margin-bottom:0"></textarea>
+    <div style="height:14px"></div>
+    <button class="primary-btn" id="swSaveBtn" onclick="saveShadow()">Save reflection</button>
+  </div>
+</div>
+
+<div class="screen active" id="sSplash">
+  <div class="splash-logo">Mirrors</div>
+  <div class="splash-sub">Know thyself</div>
+  <div class="splash-tag">A question a day. Ninety days.<br/>A slow, honest portrait of who you are.</div>
+  <div class="disclaimer">
+    <p><strong>A gentle note:</strong> Mirrors is not therapy, clinical treatment, or a substitute for professional psychological support. It is a personal reflection tool designed to encourage presence, self-awareness, and honest self-inquiry. If you are experiencing a mental health crisis, please reach out to a qualified professional.</p>
+  </div>
+  <button class="splash-btn" onclick="startOnboard()">Begin the journey</button>
+  <div class="splash-note">90 days &middot; one quiet question at a time</div>
+</div>
+
+<div class="screen" id="sOnboard">
+  <div class="ob-wrap">
+    <div class="ob-step show" id="ob1">
+      <div class="ob-label">First, an introduction</div>
+      <div class="ob-q">What should these reflections call you?</div>
+      <input class="name-in" type="text" id="nameIn" placeholder="Your name..." maxlength="20"/>
+      <br/><br/>
+      <button class="ob-next" onclick="obNext1()">Continue</button>
+    </div>
+    <div class="ob-step" id="ob2">
+      <div class="ob-label">One more thing</div>
+      <div class="ob-q">How honest do you want your mirror to be?</div>
+      <div class="sl-wrap">
+        <div class="sl-labels"><span>Gentle</span><span>Balanced</span><span>Unflinching</span></div>
+        <input class="sl" type="range" min="1" max="10" value="5" id="tolSl" oninput="updateTol(this.value)"/>
+        <div class="sl-val" id="tolVal">Balanced</div>
+      </div>
+      <button class="ob-next" onclick="obNext2()">Step inside</button>
+    </div>
+  </div>
+</div>
+
+<div class="bnav" id="bnav">
+  <button class="bnav-btn on" id="bnav0" onclick="navTo(0)"><span class="bnav-ico">&#129776;</span><span>Today</span></button>
+  <button class="bnav-btn" id="bnav1" onclick="navTo(1)"><span class="bnav-ico">&#128282;</span><span>Shadow</span></button>
+  <button class="bnav-btn" id="bnav2" onclick="navTo(2)"><span class="bnav-ico">&#127775;</span><span>Journey</span></button>
+</div>
+
+<div class="screen scroll" id="sGame">
+  <div class="g-wrap">
+    <div class="g-hdr">
+      <div class="g-brand">Mirrors</div>
+      <div class="g-streak"><span>&#128293;</span><span class="streak-n" id="streakN">0</span></div>
+    </div>
+    <div class="prog-w">
+      <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+      <div class="prog-txt"><span id="progTxt">Day 1 of 90</span><span id="progPct">0%</span></div>
+    </div>
+    <div class="q-card">
+      <div class="q-day" id="qDay">DAY 1</div>
+      <span class="q-emoji" id="qEmoji">&#10024;</span>
+      <div class="q-cat" id="qCat">&mdash;</div>
+      <div class="q-text" id="qText">Loading...</div>
+    </div>
+    <div class="answers" id="answers"></div>
+    <div class="reaction" id="reaction">
+      <div class="r-emoji" id="rEmoji"></div>
+      <div class="r-txt" id="rTxt"></div>
+    </div>
+    <button class="primary-btn hidden" id="toMindBtn" onclick="showMindfulness()">Continue to reflection &#8594;</button>
+  </div>
+</div>
+
+<div class="screen scroll" id="sMind">
+  <div class="mind-wrap">
+    <div class="phase-hdr">
+      <div class="phase-back" onclick="backToGame()">&#8592;</div>
+      <div class="phase-title">Daily Reflection</div>
+    </div>
+    <div class="j-sec" id="jPresence">
+      <div class="j-sec-hd open" onclick="toggleSec('jPresence')">
+        <div style="display:flex;align-items:center"><span class="j-sec-ico">&#129776;</span><span class="j-sec-ttl">Presence</span></div>
+        <span class="j-chev open" id="chev_jPresence">&#9660;</span>
+      </div>
+      <div class="j-body open" id="body_jPresence"><div id="presencePrompts"></div></div>
+    </div>
+    <div class="j-sec" id="jGrat">
+      <div class="j-sec-hd open" onclick="toggleSec('jGrat')">
+        <div style="display:flex;align-items:center"><span class="j-sec-ico">&#10024;</span><span class="j-sec-ttl">Gratitude</span></div>
+        <span class="j-chev open" id="chev_jGrat">&#9660;</span>
+      </div>
+      <div class="j-body open" id="body_jGrat">
+        <div style="font-family:'Fraunces',serif;font-size:15px;font-style:italic;color:var(--sub);margin-bottom:16px;line-height:1.6">Name three things you are grateful for today. They do not need to be grand.</div>
+        <div class="grat-item"><div class="grat-n">1</div><input class="grat-in" type="text" id="g1" placeholder="Something, however small..." maxlength="120"/></div>
+        <div class="grat-item"><div class="grat-n">2</div><input class="grat-in" type="text" id="g2" placeholder="Another thing..." maxlength="120"/></div>
+        <div class="grat-item"><div class="grat-n">3</div><input class="grat-in" type="text" id="g3" placeholder="And one more..." maxlength="120"/></div>
+      </div>
+    </div>
+    <div class="j-sec" id="jScore">
+      <div class="j-sec-hd open" onclick="toggleSec('jScore')">
+        <div style="display:flex;align-items:center"><span class="j-sec-ico">&#127775;</span><span class="j-sec-ttl">How was today?</span></div>
+        <span class="j-chev open" id="chev_jScore">&#9660;</span>
+      </div>
+      <div class="j-body open" id="body_jScore">
+        <div style="font-family:'Fraunces',serif;font-size:14px;font-style:italic;color:var(--sub);margin-bottom:14px">Rate your day on a scale of 1 to 5.</div>
+        <div class="score-row">
+          <button class="score-btn" data-v="1" onclick="selectScore(1)">1</button>
+          <button class="score-btn" data-v="2" onclick="selectScore(2)">2</button>
+          <button class="score-btn" data-v="3" onclick="selectScore(3)">3</button>
+          <button class="score-btn" data-v="4" onclick="selectScore(4)">4</button>
+          <button class="score-btn" data-v="5" onclick="selectScore(5)">5</button>
+        </div>
+        <div class="score-labels"><span>Not great</span><span>Pretty great</span></div>
+        <div id="scoreExpand" style="display:none">
+          <div class="j-q" style="margin-bottom:10px">Want to share a little more about today?</div>
+          <textarea class="j-ta short" id="scoreTa" placeholder="No pressure, only if it helps to write it out..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="quote-card">
+      <div class="quote-ico">&#128161;</div>
+      <div class="quote-txt" id="quoteTxt"></div>
+    </div>
+    <div class="saved-badge" id="savedBadge">&#10003; Reflection saved</div>
+    <button class="primary-btn" id="saveMindBtn" onclick="saveMindfulness()">Save reflection</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<div class="screen scroll" id="sShadow">
+  <div class="sw-wrap">
+    <div class="sw-hdr">
+      <div class="sw-title">Shadow Work</div>
+      <div class="sw-sub">The parts of us we hide are often where the most growth lives. Choose up to 3 questions a day. There is no right answer, only an honest one.</div>
+      <div class="sw-quota">
+        <span class="sw-quota-txt">Questions answered today</span>
+        <span class="sw-quota-num" id="swQuota">0 / 3</span>
+      </div>
+    </div>
+    <div id="swList"></div>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<div class="screen scroll" id="sJourney">
+  <div class="g-wrap">
+    <div class="g-hdr" style="margin-bottom:22px">
+      <div class="g-brand">Your Journey</div>
+      <div class="g-streak"><span>&#128293;</span><span class="streak-n" id="streakN2">0</span></div>
+    </div>
+    <div id="journeyContent"></div>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<div class="screen scroll" id="sReport">
+  <div class="rep-wrap" id="repContent"></div>
+</div>
+
+<div class="screen" id="sLoading">
+  <div style="text-align:center;padding:24px">
+    <div class="load-orb"></div>
+    <div class="load-txt">Gathering your reflection...</div>
+  </div>
+</div>
+<script>
+var Q=[
+{id:1,emoji:"\ud83c\udf81",cat:"Empathy",text:"Someone gives you a gift you genuinely don't like. They're watching your reaction closely.",answers:[{t:"Smile warmly \u2014 their intention matters more than the gift.",trait:"empathy"},{t:"Say you love it. No point making it awkward.",trait:"conflict_avoid"},{t:"Be honest but kind \u2014 'I appreciate the thought so much.'",trait:"authenticity"},{t:"Overreact with excitement. You're a great actor.",trait:"performance"}],reactions:["Genuine kindness over perfect honesty \u2014 you protect people's feelings instinctively.","You'd rather absorb discomfort than create it. Peace at a cost.","You've learned honesty and kindness aren't opposites.","You perform comfort to manage the room. Useful \u2014 but exhausting long term."]},
+{id:2,emoji:"\ud83e\ude9e",cat:"Self-Awareness",text:"You overhear two colleagues say you're 'a lot to handle.' Your first instinct is...",answers:[{t:"Hurt, then curious. Am I actually?",trait:"self_reflect"},{t:"Annoyed. They don't really know you.",trait:"defensiveness"},{t:"To shrink a little. Maybe tone it down.",trait:"people_please"},{t:"Unbothered. Their opinion doesn't define you.",trait:"confidence"}],reactions:["You turn criticism inward before defending. That takes real courage.","Your first line of defense is protection, not reflection.","You adjust yourself to fit others' comfort. How often do you do this?","You've built a solid boundary between others' opinions and your identity."]},
+{id:3,emoji:"\ud83c\udf27\ufe0f",cat:"Resilience",text:"Three bad things happen before noon \u2014 keys lost, coffee spilled, bus missed.",answers:[{t:"Laugh it off. Bad days happen. Reset.",trait:"resilience"},{t:"Feel like the universe is specifically against you.",trait:"catastrophizing"},{t:"Get quiet and push through. Show nothing.",trait:"suppression"},{t:"Text a friend. You need to vent before you function.",trait:"social_coping"}],reactions:["You've learned a bad morning doesn't have to become a bad day.","You give small events big meaning. What story are you telling yourself?","You process internally and keep moving. Do you ever actually release it?","You reach for connection when stressed. That's a healthy instinct."]},
+{id:4,emoji:"\ud83d\udcb8",cat:"Boundaries",text:"A friend keeps borrowing money and never pays back. They just asked again.",answers:[{t:"Say yes. You can't stand the discomfort of saying no.",trait:"people_please"},{t:"Say yes but quietly resent it.",trait:"passive"},{t:"Say no, firmly, without over-explaining.",trait:"boundaries"},{t:"Say no, explain why, offer a smaller alternative.",trait:"assertive"}],reactions:["You value peace over fairness, even at your own expense.","You give what's asked but keep score internally. That tension will surface.","You've decided your boundary doesn't need justification. Growth.","You hold the line while keeping the door open. Rare balance."]},
+{id:5,emoji:"\ud83c\udfc6",cat:"Ego",text:"You work hard on a project. Your colleague gets most of the credit in the meeting.",answers:[{t:"Say nothing. Recognition isn't why you do good work.",trait:"humility"},{t:"Speak up calmly \u2014 'I also contributed to this.'",trait:"assertive"},{t:"Feel deeply bothered but smile through it.",trait:"suppression"},{t:"Decide you'll never go above and beyond for them again.",trait:"scorekeeping"}],reactions:["You've detached your effort from its reward. That's quietly powerful.","You claim your contribution without diminishing theirs. Well done.","You swallow the feeling to avoid conflict. It doesn't disappear though.","You keep ledgers. The balance has to be right before you give again."]},
+{id:6,emoji:"\ud83d\udd07",cat:"Solitude",text:"You have an entire Saturday with no plans, no obligations, no people.",answers:[{t:"Bliss. You recharge alone and you needed this.",trait:"introvert"},{t:"Fill it immediately. Silence makes you uncomfortable.",trait:"avoidance"},{t:"Productive mode. Finally time to catch up.",trait:"driven"},{t:"Restless at first, then settle into something creative.",trait:"adaptive"}],reactions:["Solitude is where you find yourself. Alone without being lonely.","You fill space quickly. What are you avoiding when things go quiet?","Rest doesn't feel like rest unless something gets done. Sound familiar?","You need a beat to adjust but then find your flow. Adaptable."]},
+{id:7,emoji:"\ud83d\udcac",cat:"Conflict",text:"Someone sends a passive-aggressive text. You know exactly what they mean.",answers:[{t:"Reply to what they actually mean, not what they wrote.",trait:"directness"},{t:"Match the energy. Two can play.",trait:"reactive"},{t:"Reply warmly and pretend you didn't notice.",trait:"conflict_avoid"},{t:"Leave it on read. Not today.",trait:"detachment"}],reactions:["You cut through the game and address what's real. Bold.","When pushed, you push back the same way. Do you escalate by accident?","You absorb the tension and smooth it over. The cost is yours.","You protect your energy by not engaging. A deliberate choice."]},
+{id:8,emoji:"\ud83e\udde9",cat:"Identity",text:"You're describing yourself to someone new. Which version do you lead with?",answers:[{t:"What you do for work \u2014 the easiest shorthand.",trait:"identity_work"},{t:"Your values \u2014 what you care about most.",trait:"identity_values"},{t:"Your humor \u2014 you'd rather make them laugh first.",trait:"identity_social"},{t:"You ask questions instead. Deflect attention.",trait:"deflection"}],reactions:["You lead with role. What happens when the role changes?","You lead with what you stand for. A confident foundation.","Connection through lightness. But do they know the real you?","You make others the subject. Generous \u2014 or self-protective."]},
+{id:9,emoji:"\u23f3",cat:"Change",text:"An opportunity excites you \u2014 but it would completely uproot your current life.",answers:[{t:"Take it. You can rebuild anywhere.",trait:"risk_take"},{t:"Overthink it for weeks and probably say no.",trait:"fear_change"},{t:"Make a pros/cons list with a deadline.",trait:"logical"},{t:"Ask the people it affects first.",trait:"relational"}],reactions:["You trust yourself in the unknown. That's faith, not recklessness.","You weigh risk heavily. Is it the decision you fear, or the aftermath?","You tame the chaos of choice with structure. Calm and methodical.","Your decisions include others. You carry people with you."]},
+{id:10,emoji:"\ud83c\udfad",cat:"Authenticity",text:"Someone shares an opinion you strongly disagree with at a gathering.",answers:[{t:"Engage \u2014 you love a good debate.",trait:"directness"},{t:"Stay quiet. Not the time or place.",trait:"conflict_avoid"},{t:"Ask a curious question rather than challenge.",trait:"diplomacy"},{t:"Agree on the surface. Pick your battles.",trait:"performance"}],reactions:["You step into disagreement without aggression. Confidence in action.","You read the room and decide silence is wisdom here.","You challenge through curiosity \u2014 making them think, not defend.","You choose harmony over honesty. The mask fits well."]},
+{id:11,emoji:"\ud83e\udec2",cat:"Vulnerability",text:"A close friend is going through something hard. You want to help but don't know how.",answers:[{t:"Show up physically. Presence over words.",trait:"empathy"},{t:"Ask them directly what they need.",trait:"directness"},{t:"Send a heartfelt message, let them come to you.",trait:"space_giving"},{t:"Try to fix the problem. That's how you show love.",trait:"problem_solve"}],reactions:["You know being present is sometimes the most profound thing.","You ask instead of assume. That's rare.","You offer without imposing. You give them room to breathe.","You love through solutions. Sometimes people need to feel heard, not fixed."]},
+{id:12,emoji:"\ud83c\udf19",cat:"Inner Life",text:"It's late. You can't sleep. What's your mind usually running about?",answers:[{t:"Things I said or did wrong. The mental replay.",trait:"rumination"},{t:"Things I haven't done yet. The endless list.",trait:"driven"},{t:"Other people \u2014 their lives, feelings, problems.",trait:"empathy"},{t:"Big questions. Purpose, time, meaning.",trait:"philosophical"}],reactions:["Your mind reviews the past for errors. What if you let a day be done?","Even at rest, you're planning. The drive doesn't clock out.","You carry others in your thoughts even at 2am. Deep capacity for care.","You sit with the unanswerable. Wisdom, or beautiful restlessness."]},
+{id:13,emoji:"\ud83e\uddf2",cat:"Patterns",text:"Your last three friendships that faded \u2014 what's the honest common thread?",answers:[{t:"I probably didn't invest enough.",trait:"self_reflect"},{t:"They weren't consistent or reliable.",trait:"blame_external"},{t:"We grew in different directions naturally.",trait:"acceptance"},{t:"I pull back when things get complicated.",trait:"avoidance"}],reactions:["You look inward first. Harder and rarer than you think.","Patterns clear up when we stop making exceptions. Who keeps showing up this way?","Growth is real and so is distance. You accept both gracefully.","When it gets messy, you exit quietly. What are you protecting yourself from?"]},
+{id:14,emoji:"\ud83d\udca1",cat:"Ambition",text:"You have an idea you genuinely believe could be great. What do you do with it?",answers:[{t:"Start immediately. Ideas die in your head.",trait:"action"},{t:"Research and plan until you feel ready.",trait:"logical"},{t:"Tell a few trusted people to test it.",trait:"relational"},{t:"Sit with it. Some ideas need time to clarify.",trait:"patience"}],reactions:["You trust momentum over preparation. Doing teaches more than planning.","You want a map before you travel. Does the window ever close while you wait?","You use relationships as a sounding board. Collaboration is your engine.","You let ideas breathe before committing. Wisdom in the pause."]},
+{id:15,emoji:"\ud83c\udfaf",cat:"Values",text:"You can only truly live by one of these. Which feels most like you?",answers:[{t:"Freedom \u2014 to move, choose, live without ceilings.",trait:"freedom"},{t:"Security \u2014 knowing what tomorrow looks like.",trait:"security"},{t:"Connection \u2014 deep real relationships above all.",trait:"connection"},{t:"Growth \u2014 always becoming, never settling.",trait:"growth"}],reactions:["You're built for open spaces. Constraints eventually suffocate you.","You find peace in predictability. That's knowing yourself.","You measure life in relationships, not milestones. A rich way to live.","You'd rather become than arrive. The journey is the point."]},
+{id:16,emoji:"\ud83c\udf0a",cat:"Control",text:"Plans you were looking forward to fall apart last-minute. You...",answers:[{t:"Adapt quickly and make the most of it.",trait:"adaptive"},{t:"Feel genuinely upset but recover within the hour.",trait:"resilience"},{t:"Struggle to let go of what you'd imagined.",trait:"control"},{t:"Feel secretly relieved. You needed the space.",trait:"introvert"}],reactions:["You bend without breaking. Flexibility is strength.","You feel it fully and then move on. Healthy processing.","You had a picture in mind. What does holding control give you?","Your social battery sometimes wins. Nothing wrong with knowing that."]},
+{id:17,emoji:"\ud83d\udd11",cat:"Trust",text:"Someone shares a secret. A week later it becomes relevant in a conversation.",answers:[{t:"Keep it. Their trust matters more than your point.",trait:"loyalty"},{t:"Hint at it without saying it directly.",trait:"passive"},{t:"Share it \u2014 the situation clearly warrants it.",trait:"pragmatic"},{t:"Ask their permission first.",trait:"relational"}],reactions:["People feel safe with you for a reason.","You find the middle \u2014 not saying it, but pointing toward it.","You weigh situation over promise. Context is everything to you.","You involve them. Trust is a two-way process to you."]},
+{id:18,emoji:"\ud83e\udde0",cat:"Criticism",text:"Someone you respect gives feedback that stings because it's probably true.",answers:[{t:"Thank them, sit with it, and actually change.",trait:"growth"},{t:"Thank them but feel defensive for days.",trait:"defensiveness"},{t:"Immediately agree, before even processing it.",trait:"people_please"},{t:"Ask clarifying questions before accepting.",trait:"logical"}],reactions:["You hold difficult feedback without crushing. Rare maturity.","Your ego needs time. You get there \u2014 but the wall goes up first.","You agree faster than you feel. Processing or performing acceptance?","You understand before you absorb. You own your growth deliberately."]},
+{id:19,emoji:"\ud83c\udf05",cat:"Morning",text:"It's 6am. You have no obligations today. What do you actually do?",answers:[{t:"Sleep in. Rest is the whole point.",trait:"recovery"},{t:"Get up early anyway. You like the quiet.",trait:"driven"},{t:"Scroll for a while before getting up.",trait:"avoidance"},{t:"Something slow \u2014 coffee, journaling, stillness.",trait:"self_aware"}],reactions:["Your body knows what it needs and you let it. Recovery is productive too.","Stillness is active for you. The morning is yours before the world takes over.","The phone fills the quiet first. What are you filling it with?","You protect the morning like it's sacred. You know it changes everything."]},
+{id:20,emoji:"\ud83d\udc94",cat:"Loss",text:"Something you worked hard toward doesn't work out. How long does it affect you?",answers:[{t:"A day or two, then I redirect.",trait:"resilience"},{t:"Longer than I'd like to admit.",trait:"rumination"},{t:"I grieve it but find the lesson quickly.",trait:"growth"},{t:"I detach fast. Disappointment doesn't stick.",trait:"detachment"}],reactions:["You process fast and pivot. Setbacks don't occupy space they don't deserve.","You sit in loss longer than it needs. Depth \u2014 or habit?","You feel the fall and look for the floor to push off from.","You don't let much in. That protects you \u2014 but what else does it keep out?"]},
+{id:21,emoji:"\ud83d\udde3\ufe0f",cat:"Honesty",text:"A friend asks your honest opinion about a decision they've clearly already made.",answers:[{t:"Tell them what they need to hear, not want.",trait:"directness"},{t:"Support their decision. They've made it.",trait:"empathy"},{t:"Gently plant a seed of doubt.",trait:"diplomacy"},{t:"Ask questions until they find the answer.",trait:"wisdom"}],reactions:["You respect people enough to be honest even when it's uncomfortable.","You believe autonomy matters more than your opinion. Respect.","You care but don't want to be the one who said it. Indirect honesty.","You believe the best truth is self-discovered. Teacher energy."]},
+{id:22,emoji:"\ud83d\udc41\ufe0f",cat:"Perception",text:"You catch yourself comparing yourself to someone a lot lately. When you notice...",answers:[{t:"Use it as fuel. If they can, so can you.",trait:"driven"},{t:"Feel small, then try to shake it.",trait:"self_reflect"},{t:"Wonder what it says about what you want.",trait:"philosophical"},{t:"Remind yourself comparison is a trap, redirect.",trait:"confidence"}],reactions:["You convert envy into energy. Powerful if you don't burn yourself.","The comparison stings before you catch it. What is it showing you?","You use it as data. The sting points to something real.","You know the game and refuse to play. Self-awareness as armor."]},
+{id:23,emoji:"\ud83d\udd70\ufe0f",cat:"Time",text:"You've been procrastinating on something important for weeks. You feel...",answers:[{t:"Shame. You know better and still didn't.",trait:"self_critic"},{t:"Curious \u2014 what's the real reason I'm avoiding it?",trait:"self_reflect"},{t:"Overwhelmed. I don't know where to start.",trait:"fear_change"},{t:"Like I need to just start, even badly.",trait:"action"}],reactions:["You punish yourself first. Does the criticism motivate or paralyze?","You get curious instead of judgmental. A sophisticated relationship with yourself.","The size made it immovable. Starting small is still starting.","You know the cure is motion. Done beats perfect."]},
+{id:24,emoji:"\ud83c\udf3f",cat:"Needs",text:"You've been running on empty for two weeks. What do you actually do?",answers:[{t:"Push through. Rest when it's done.",trait:"driven"},{t:"Cancel things and rest, even if guilty.",trait:"self_care"},{t:"Wait for someone to notice and offer help.",trait:"passive"},{t:"Identify the drain and address it directly.",trait:"assertive"}],reactions:["You treat rest as a finish-line reward \u2014 but the line keeps moving.","You give yourself permission, even with guilt attached. Progress.","You wait to be seen. How often does that happen the way you need?","You go upstream \u2014 fix the source, not the symptom. Self-leadership."]},
+{id:25,emoji:"\ud83c\udfaa",cat:"Social",text:"You're at a party where you know almost no one.",answers:[{t:"Work the room. New people are interesting.",trait:"extrovert"},{t:"Find one person and go deep, not wide.",trait:"introvert"},{t:"Stay near whoever you came with.",trait:"security"},{t:"Leave earlier than planned. Not your thing.",trait:"boundaries"}],reactions:["A room full of people is a room full of possibilities to you.","One real conversation beats ten surface ones for you.","You anchor to the familiar when uncertain. Know your safe harbor.","You know when something isn't serving you and you leave. Clean."]},
+{id:26,emoji:"\ud83d\udd2e",cat:"Future",text:"When you think about five years from now, what do you feel first?",answers:[{t:"Excitement. So much is still possible.",trait:"optimism"},{t:"Anxiety. A lot can go wrong.",trait:"fear_change"},{t:"Unclear. The future feels too abstract.",trait:"present_focus"},{t:"Pressure. I wonder if I'll meet my standards.",trait:"driven"}],reactions:["You live forward, running toward the future, not from it.","Your mind goes to risk before possibility. What if you reversed that?","You live in the present. Grounding \u2014 or avoidance, depending on the day.","You measure against a standard. Whose standard is it really?"]},
+{id:27,emoji:"\ud83e\udd1d",cat:"Fairness",text:"You do significantly more work than someone on a shared project.",answers:[{t:"Say something directly. This isn't sustainable.",trait:"assertive"},{t:"Do it anyway. It builds character.",trait:"martyrdom"},{t:"Do less to match them and let them notice.",trait:"passive"},{t:"Calmly discuss redistributing the work.",trait:"relational"}],reactions:["You address imbalance directly. You value the relationship enough to be honest.","You absorb unfairness and call it virtue. A loop worth examining.","You adjust your output and wait. Passive \u2014 but pointed.","You bring it up without accusation. A skill most never develop."]},
+{id:28,emoji:"\ud83c\udfb6",cat:"Emotion",text:"Something unexpectedly moves you \u2014 a song, a scene, a moment. You...",answers:[{t:"Let yourself feel it fully, even in public.",trait:"emotional_open"},{t:"Feel it but contain it. Not the place.",trait:"suppression"},{t:"Feel slightly embarrassed it got to you.",trait:"self_critic"},{t:"Want to share it with someone immediately.",trait:"connection"}],reactions:["You give emotion permission. That openness is courage.","You feel deeply but curate who sees it. Your inner life is yours.","You judge yourself for being moved. What if you just let it land?","You experience beauty and want to halve the distance to someone."]},
+{id:29,emoji:"\ud83e\udded",cat:"Direction",text:"You feel lost \u2014 not in crisis, but without a clear sense of what's next.",answers:[{t:"Sit with the uncertainty. Something emerges.",trait:"patience"},{t:"Take action on anything. Movement = clarity.",trait:"action"},{t:"Talk to people you trust for perspective.",trait:"relational"},{t:"Return to your values and rebuild from there.",trait:"identity_values"}],reactions:["You trust the pause. Not everything needs solving immediately.","You move to think. Standing still feels like stagnation.","You find yourself in conversation. Others help you hear what you know.","You return to your foundation when the map runs out. Groundedness."]},
+{id:30,emoji:"\u2728",cat:"Legacy",text:"At the end of your life, what do you most want to have been true about you?",answers:[{t:"That I loved people well and they knew it.",trait:"connection"},{t:"That I did something that mattered beyond me.",trait:"purpose"},{t:"That I was honest, even when it cost me.",trait:"authenticity"},{t:"That I became the fullest version of myself.",trait:"growth"}],reactions:["Love as the measure of a life. You'll work backwards from that.","Impact is your north star. The world slightly different because you were here.","Integrity above comfort. You'll pay for truth \u2014 and you're okay with that.","A lifelong conversation with your own potential. The most honest ambition."]},
+{id:31,emoji:"\ud83e\udea4",cat:"Avoidance",text:"There's a conversation you've been avoiding for a while. Why haven't you had it?",answers:[{t:"I don't want to hurt them.",trait:"empathy"},{t:"I'm afraid of how they'll react.",trait:"fear_change"},{t:"I keep hoping it'll resolve on its own.",trait:"avoidance"},{t:"I'm not sure what I actually want to say.",trait:"self_reflect"}],reactions:["You carry their feelings ahead of your own honesty. Generous \u2014 and heavy.","Their reaction holds more power than your truth right now. Worth noticing.","You wait for time to do what only courage can. It rarely works.","The avoidance is really uncertainty. Clarity has to come first."]},
+{id:32,emoji:"\ud83c\udfa2",cat:"Joy",text:"When was the last time you felt genuinely, uncomplicatedly happy?",answers:[{t:"Recently. I notice and savor those moments.",trait:"optimism"},{t:"A while ago. I had to think hard about it.",trait:"present_focus"},{t:"When I'm with specific people.",trait:"connection"},{t:"When I accomplish something I'm proud of.",trait:"driven"}],reactions:["You catch joy as it happens. That's a practiced skill, not luck.","Joy got crowded out. What's been taking up that space?","Your happiness lives in relationships. That tells you where to invest.","Joy is tied to achievement for you. What happens in the in-between?"]},
+{id:33,emoji:"\u2696\ufe0f",cat:"Guilt",text:"You said no to something and the other person was clearly disappointed.",answers:[{t:"I feel guilty for days afterward.",trait:"people_please"},{t:"A little guilt, but I stand by it.",trait:"boundaries"},{t:"No guilt. It was the right call.",trait:"confidence"},{t:"I overexplain to make myself feel better.",trait:"passive"}],reactions:["Their disappointment becomes your burden. The no was still right.","You feel it without letting it reverse you. Healthy.","You've made peace with disappointing people. That's freedom.","The guilt leaks out as justification. Who are you convincing?"]},
+{id:34,emoji:"\ud83c\udf11",cat:"Shadow",text:"What's a trait in others that secretly irritates you the most?",answers:[{t:"Arrogance. People who think too highly of themselves.",trait:"self_reflect"},{t:"Flakiness. People who don't follow through.",trait:"boundaries"},{t:"Neediness. People who depend too much.",trait:"detachment"},{t:"Fakeness. People who perform instead of being real.",trait:"authenticity"}],reactions:["What we judge hardest often mirrors something in us. Worth a look.","You value reliability deeply. It's probably how you show love.","Dependence unsettles you. Does that say something about your own needs?","You crave realness. You'd rather have hard truth than easy theater."]},
+{id:35,emoji:"\ud83c\udf81",cat:"Receiving",text:"Someone wants to do something genuinely kind for you. Your honest reaction?",answers:[{t:"I feel uncomfortable and want to repay it fast.",trait:"scorekeeping"},{t:"I'm touched and let myself accept it.",trait:"emotional_open"},{t:"I deflect \u2014 'oh you didn't have to.'",trait:"deflection"},{t:"I wonder what they want in return.",trait:"detachment"}],reactions:["You struggle to receive without balancing the ledger. Why is owing so hard?","You can receive as gracefully as you give. That's rare and beautiful.","You minimize kindness aimed at you. Do you feel worthy of it?","Suspicion guards the gate. Who taught you kindness has a cost?"]},
+{id:36,emoji:"\ud83c\udfc3",cat:"Escape",text:"When life gets overwhelming, what's your go-to escape?",answers:[{t:"Distraction \u2014 screens, scrolling, noise.",trait:"avoidance"},{t:"Productivity \u2014 I bury myself in tasks.",trait:"driven"},{t:"Withdrawal \u2014 I go quiet and disappear.",trait:"introvert"},{t:"I actually sit with it and process.",trait:"self_aware"}],reactions:["You numb the volume. It works briefly. Then what?","You outrun feelings by staying busy. The feelings wait patiently.","You retreat to recover. Make sure it's recovery, not hiding.","You face it instead of fleeing. The hardest and healthiest path."]},
+{id:37,emoji:"\ud83d\udcad",cat:"Self-Talk",text:"You make a mistake at work. What does the voice in your head say?",answers:[{t:"'You always do this. What's wrong with you?'",trait:"self_critic"},{t:"'Okay, that happened. How do I fix it?'",trait:"resilience"},{t:"'Everyone saw. They think less of me now.'",trait:"catastrophizing"},{t:"'It's fine. Mistakes happen.' Then move on.",trait:"confidence"}],reactions:["Your inner voice is harsh. Would you speak to a friend that way?","You move to solutions, not self-attack. A steady inner ally.","You assume the worst about how others perceive you. Is it true?","You don't let one mistake define you. Grounded self-worth."]},
+{id:38,emoji:"\ud83e\udd32",cat:"Giving",text:"You help people often. Be honest \u2014 why do you really do it?",answers:[{t:"It genuinely makes me happy. No agenda.",trait:"empathy"},{t:"I want to be needed and valued.",trait:"people_please"},{t:"I feel guilty when I don't.",trait:"martyrdom"},{t:"I hope it'll come back to me someday.",trait:"scorekeeping"}],reactions:["Your giving comes from fullness, not emptiness. That's pure.","Some of your giving buys belonging. Worth knowing your why.","Obligation drives some of it. Giving from guilt drains you both.","You give with quiet expectation. The ledger is always running."]},
+{id:39,emoji:"\ud83d\udd25",cat:"Anger",text:"Something genuinely makes you angry. What do you do with it?",answers:[{t:"Express it directly in the moment.",trait:"directness"},{t:"Bottle it and let it leak out later.",trait:"suppression"},{t:"Go cold and distant instead.",trait:"detachment"},{t:"Process privately, then address it calmly.",trait:"self_aware"}],reactions:["You let anger move through you cleanly. Honest, if sometimes sharp.","The anger doesn't vanish \u2014 it reroutes. Where does yours go?","You freeze rather than burn. The silence speaks loudly though.","You give yourself a beat before responding. Mature regulation."]},
+{id:40,emoji:"\ud83c\udf1f",cat:"Worth",text:"Where does your sense of being 'enough' mostly come from?",answers:[{t:"My achievements and what I produce.",trait:"driven"},{t:"The people who love me.",trait:"connection"},{t:"It comes from within, mostly stable.",trait:"confidence"},{t:"Honestly? It fluctuates a lot.",trait:"self_reflect"}],reactions:["Your worth is performance-based. Exhausting when the output stops.","You find worth in being loved. Beautiful \u2014 but fragile if it shifts.","Your worth has roots, not just branches. That's hard-won.","Your sense of enough is still finding its floor. Naming it is step one."]},
+{id:41,emoji:"\ud83d\udeaa",cat:"Endings",text:"A chapter of your life is clearly ending. How do you handle it?",answers:[{t:"I hold on too long, even when it's over.",trait:"fear_change"},{t:"I grieve it properly, then move forward.",trait:"growth"},{t:"I detach early to protect myself.",trait:"detachment"},{t:"I look forward to what's next.",trait:"optimism"}],reactions:["You grip what's leaving. What makes letting go feel like losing?","You honor endings without being trapped by them. Healthy closure.","You leave before you're left. Self-protective \u2014 but you miss the goodbye.","You see endings as doorways. Forward-facing by nature."]},
+{id:42,emoji:"\ud83c\udfa4",cat:"Visibility",text:"You're offered a chance to be seen \u2014 to lead, present, take center stage.",answers:[{t:"Yes. I'm comfortable being visible.",trait:"confidence"},{t:"I want it but fear judgment.",trait:"self_critic"},{t:"I'd rather contribute from behind the scenes.",trait:"humility"},{t:"I deflect it to someone else.",trait:"deflection"}],reactions:["You don't shrink from attention. You've made peace with being seen.","Desire and fear pull at you. The wanting is worth honoring.","You let the work speak louder than you do. Quiet strength.","You hand visibility away. Is it humility \u2014 or hiding?"]},
+{id:43,emoji:"\ud83e\uddca",cat:"Numbness",text:"Sometimes you feel disconnected from your own emotions. When that happens...",answers:[{t:"I push to feel something, anything.",trait:"emotional_open"},{t:"I stay busy until it passes.",trait:"avoidance"},{t:"I get curious about why I'm shut off.",trait:"self_aware"},{t:"I don't really notice it happening.",trait:"suppression"}],reactions:["You chase aliveness when you go numb. The hunger to feel is itself feeling.","You wait out the numbness with motion. Does it ever fully pass?","You investigate the numbness instead of fearing it. Wise.","The disconnection is so familiar it's invisible. That's worth sitting with."]},
+{id:44,emoji:"\ud83e\ude99",cat:"Decisions",text:"You're torn between what's safe and what you truly want.",answers:[{t:"I usually choose safe and wonder 'what if.'",trait:"fear_change"},{t:"I follow what I want, consequences aside.",trait:"risk_take"},{t:"I agonize, then choose, then second-guess.",trait:"rumination"},{t:"I find a third path between the two.",trait:"adaptive"}],reactions:["Safety wins, but the what-if lingers. The lingering is data.","You bet on desire over comfort. Brave \u2014 make sure it's not impulsive.","The deciding exhausts you more than the outcome. Trust yourself sooner.","You refuse false binaries. Creative problem-solving as a default."]},
+{id:45,emoji:"\ud83d\udc65",cat:"Belonging",text:"In a group, which role do you naturally fall into?",answers:[{t:"The one who keeps everyone okay.",trait:"people_please"},{t:"The quiet observer taking it all in.",trait:"introvert"},{t:"The one who drives energy and direction.",trait:"extrovert"},{t:"The one who challenges and questions.",trait:"directness"}],reactions:["You manage the room's emotions. Who manages yours?","You watch before you engage. You see what others miss.","You set the tempo. Groups orient around your presence.","You're the friction that sharpens the group. Necessary, if uncomfortable."]},
+{id:46,emoji:"\ud83c\udf17",cat:"Duality",text:"There's a gap between who you are publicly and privately. How big is it?",answers:[{t:"Pretty big. Few people know the real me.",trait:"performance"},{t:"Small. I'm mostly the same everywhere.",trait:"authenticity"},{t:"Depends entirely on who I'm with.",trait:"adaptive"},{t:"I'm not sure I know my private self well.",trait:"self_reflect"}],reactions:["You wear a public self. The gap costs energy to maintain.","You've integrated your selves. That's a kind of freedom.","You're fluid across contexts. Chameleon \u2014 gift and risk both.","The private you is still being discovered. That's honest."]},
+{id:47,emoji:"\u26d3\ufe0f",cat:"Obligation",text:"You're doing something mainly because you feel you 'should.' How common is this?",answers:[{t:"Constant. My life runs on shoulds.",trait:"martyrdom"},{t:"Sometimes, but I catch it.",trait:"self_aware"},{t:"Rarely. I do what aligns with me.",trait:"freedom"},{t:"I confuse 'should' and 'want' a lot.",trait:"self_reflect"}],reactions:["Obligation is your operating system. Where did your wants go?","You notice the shoulds and question them. Awareness creates choice.","You've freed yourself from most shoulds. Hard-won autonomy.","The line blurs for you. Untangling it is the work."]},
+{id:48,emoji:"\ud83c\udf2c\ufe0f",cat:"Forgiveness",text:"Someone hurt you a while ago. Where are you with it now?",answers:[{t:"I've let it go genuinely.",trait:"acceptance"},{t:"I say I'm over it but I'm not.",trait:"suppression"},{t:"I hold it as a lesson and a boundary.",trait:"boundaries"},{t:"I still replay it sometimes.",trait:"rumination"}],reactions:["You released it for your own peace. Forgiveness as freedom.","The hurt lives under the surface. Pretending isn't healing.","You forgive without forgetting. Wisdom, not weakness.","The wound reopens in quiet moments. What would closure require?"]},
+{id:49,emoji:"\ud83c\udfaf",cat:"Motivation",text:"What actually gets you to follow through on hard things?",answers:[{t:"Fear of failing or letting people down.",trait:"fear_change"},{t:"The vision of who I'll become.",trait:"growth"},{t:"Accountability \u2014 someone watching.",trait:"relational"},{t:"Pure discipline. I just do it.",trait:"driven"}],reactions:["Fear is your fuel. Effective \u2014 but it runs the tank dry.","You're pulled by the future self, not pushed by fear. Sustainable.","You keep promises to others better than to yourself. Worth noticing.","You've built the muscle. Will over mood."]},
+{id:50,emoji:"\ud83d\udca7",cat:"Crying",text:"When was the last time you let yourself really cry?",answers:[{t:"Recently. I let it out when I need to.",trait:"emotional_open"},{t:"I can't remember. It's been long.",trait:"suppression"},{t:"Only alone, never around others.",trait:"introvert"},{t:"I get close but rarely let go fully.",trait:"control"}],reactions:["You let tears do their work. Emotional honesty with yourself.","The tears are dammed up somewhere. What's holding them?","You grieve privately. Safe \u2014 but you carry it solo too.","You hold the edge of release. What would happen if you let go?"]},
+{id:51,emoji:"\ud83d\uddfa\ufe0f",cat:"Purpose",text:"Do you feel like your daily life is aligned with what matters to you?",answers:[{t:"Mostly yes. I've built it intentionally.",trait:"identity_values"},{t:"Not really. I'm going through motions.",trait:"present_focus"},{t:"I'm in transition, figuring it out.",trait:"growth"},{t:"I haven't thought about it much.",trait:"avoidance"}],reactions:["Your life reflects your values. That's no accident \u2014 it's design.","There's a gap between your days and your meaning. Worth closing.","You're between chapters. The not-knowing is part of becoming.","The question itself might be the nudge. What does matter to you?"]},
+{id:52,emoji:"\ud83c\udfad",cat:"Masks",text:"Which mask do you wear most often around others?",answers:[{t:"'I'm fine' when I'm not.",trait:"suppression"},{t:"'I've got it handled' when I'm overwhelmed.",trait:"control"},{t:"'I don't care' when I deeply do.",trait:"detachment"},{t:"Honestly, I don't wear many masks.",trait:"authenticity"}],reactions:["The most common lie, told with a smile. Who gets the truth?","You perform competence. Asking for help feels like failure, doesn't it?","You armor your caring with indifference. The armor fools others, not you.","You let yourself be seen as you are. Rare and brave."]},
+{id:53,emoji:"\ud83c\udf31",cat:"Growth",text:"Think of who you were three years ago. What's the biggest change?",answers:[{t:"I'm more confident and self-assured.",trait:"confidence"},{t:"I'm more guarded than I used to be.",trait:"detachment"},{t:"I understand myself far better.",trait:"self_aware"},{t:"Honestly, not much has changed.",trait:"present_focus"}],reactions:["You've grown into yourself. The roots are deeper now.","Experience taught you caution. What did you trade for that armor?","Self-knowledge is your growth. The most useful kind.","Three years, similar you. Is that stability \u2014 or stuckness?"]},
+{id:54,emoji:"\ud83e\udd10",cat:"Expression",text:"You have something important to say but the moment is tense.",answers:[{t:"I say it anyway. It needs to be said.",trait:"directness"},{t:"I hold back and regret it later.",trait:"conflict_avoid"},{t:"I wait for a calmer moment.",trait:"diplomacy"},{t:"I hint and hope they get it.",trait:"passive"}],reactions:["You prioritize truth over comfort. Bold in the hard moments.","The unsaid words haunt you. The silence costs more than speaking would.","You time your truth for when it can land. Strategic patience.","You leave it half-said. Do they ever fully receive it?"]},
+{id:55,emoji:"\ud83c\udfd4\ufe0f",cat:"Adversity",text:"You're facing something genuinely hard. What carries you through?",answers:[{t:"My belief that I'll figure it out.",trait:"resilience"},{t:"The people around me.",trait:"connection"},{t:"Sheer stubbornness.",trait:"driven"},{t:"My faith that it's happening for a reason.",trait:"philosophical"}],reactions:["Self-trust is your anchor. You've survived everything so far.","You lean on others. Strength through being held.","You refuse to quit. Grit as your engine.","You find meaning in the struggle. Meaning makes pain bearable."]},
+{id:56,emoji:"\ud83e\ude9e",cat:"Reflection",text:"How often do you actually pause to reflect on your life?",answers:[{t:"Often. It's a regular practice.",trait:"self_aware"},{t:"Rarely. I'm too busy living it.",trait:"present_focus"},{t:"Only when something forces me to.",trait:"avoidance"},{t:"Constantly, maybe too much.",trait:"rumination"}],reactions:["You audit your life intentionally. The examined life, lived.","You move fast. When does the meaning catch up to the motion?","Crisis is your reflection trigger. What if you didn't wait for it?","You over-examine. Sometimes living beats analyzing."]},
+{id:57,emoji:"\ud83d\udc9e",cat:"Love",text:"How do you most naturally express that you care about someone?",answers:[{t:"Acts of service \u2014 I do things for them.",trait:"problem_solve"},{t:"Quality time and presence.",trait:"connection"},{t:"Words \u2014 I tell them clearly.",trait:"emotional_open"},{t:"I struggle to express it at all.",trait:"suppression"}],reactions:["You love through doing. Make sure they also feel your words.","You give the rarest gift \u2014 your full attention.","You say it out loud. Many people never hear it. You make sure they do.","The care is there but the bridge is hard to build. Worth practicing."]},
+{id:58,emoji:"\ud83c\udfb2",cat:"Risk",text:"A choice could change everything \u2014 but it might fail spectacularly.",answers:[{t:"I take it. Regret scares me more than failure.",trait:"risk_take"},{t:"I don't. The downside is too real.",trait:"security"},{t:"I take it only if I've minimized the risk.",trait:"logical"},{t:"I freeze and the choice makes itself.",trait:"fear_change"}],reactions:["You fear the unlived life more than the failed attempt. That's rare.","You protect your floor. Stability has its own quiet wisdom.","You leap \u2014 but only after building the net. Calculated courage.","Indecision becomes the decision. The window closes on its own."]},
+{id:59,emoji:"\ud83c\udf0a",cat:"Overwhelm",text:"Everything is piling up at once. Your internal state is...",answers:[{t:"Calm on the surface, chaos underneath.",trait:"suppression"},{t:"I break it into pieces and start somewhere.",trait:"logical"},{t:"I shut down and avoid all of it.",trait:"avoidance"},{t:"I ask for help without shame.",trait:"relational"}],reactions:["You look composed while drowning quietly. Who sees the underneath?","You impose order on chaos. Methodical under pressure.","Overwhelm freezes you. The pile grows while you hide. Familiar loop?","You reach out instead of collapsing alone. That's strength, not weakness."]},
+{id:60,emoji:"\ud83d\udd73\ufe0f",cat:"Fear",text:"What are you most quietly afraid of?",answers:[{t:"That I'm not actually good enough.",trait:"self_critic"},{t:"That I'll end up alone.",trait:"connection"},{t:"That I'll waste my potential.",trait:"driven"},{t:"That I'll never really be understood.",trait:"authenticity"}],reactions:["The fear of inadequacy drives more than you admit. It's also rarely true.","Connection matters so much that its absence terrifies you. Deeply human.","You fear the unlived life. That fear is also your fuel.","Being truly seen is your deepest want \u2014 and your deepest fear."]},
+{id:61,emoji:"\ud83c\udf81",cat:"Self-Worth",text:"Do you believe you deserve good things without earning them?",answers:[{t:"Yes, just for being human.",trait:"confidence"},{t:"No \u2014 I feel I have to earn everything.",trait:"driven"},{t:"I want to believe it but struggle to.",trait:"self_reflect"},{t:"I've never really thought about it.",trait:"avoidance"}],reactions:["You believe in inherent worth. A rare and grounding belief.","Worth is conditional for you. Who set those conditions?","The belief is forming. Be patient with yourself as it roots.","The question lands somewhere tender. Sit with it a while."]},
+{id:62,emoji:"\ud83c\udf0c",cat:"Meaning",text:"When you imagine your life having mattered, what does that look like?",answers:[{t:"I changed individual lives, one at a time.",trait:"connection"},{t:"I built or created something lasting.",trait:"purpose"},{t:"I lived honestly and true to myself.",trait:"authenticity"},{t:"I'm still figuring out what matters.",trait:"growth"}],reactions:["Meaning lives in your relationships, not your reach. Intimate impact.","You want to leave a mark that outlives you. Builder's heart.","A life well-lived is one lived as yourself. That's enough for you.","The search itself is meaningful. You're early in a long question."]},
+{id:63,emoji:"\ud83d\udd12",cat:"Walls",text:"How easily do you let new people truly know you?",answers:[{t:"Quickly. I'm an open book.",trait:"emotional_open"},{t:"Slowly. Trust must be earned.",trait:"boundaries"},{t:"I let them think they know me.",trait:"performance"},{t:"Almost never fully. It's hard.",trait:"detachment"}],reactions:["You offer yourself freely. Trusting \u2014 make sure it's also discerning.","You guard the gate carefully. Few get in, but they're real.","You offer a curated version. The real you stays protected. Why?","The walls are high. What would it take to lower even one?"]},
+{id:64,emoji:"\ud83c\udf9a\ufe0f",cat:"Regulation",text:"Your emotions are running high. How much control do you have over them?",answers:[{t:"A lot. I can steady myself.",trait:"self_aware"},{t:"Little. They run me when they're big.",trait:"reactive"},{t:"I suppress them until they explode.",trait:"suppression"},{t:"I distract until they fade.",trait:"avoidance"}],reactions:["You've built emotional regulation. The storm passes through, not over, you.","Big feelings take the wheel. Naming them is how you take it back.","You hold until you can't. The pressure finds a way out eventually.","You wait them out. They fade \u2014 but do they resolve?"]},
+{id:65,emoji:"\ud83e\uddec",cat:"Inheritance",text:"What pattern from your family do you catch yourself repeating?",answers:[{t:"Avoiding conflict at all costs.",trait:"conflict_avoid"},{t:"Working myself to exhaustion.",trait:"driven"},{t:"Struggling to show emotion.",trait:"suppression"},{t:"Actually, I've broken most of them.",trait:"growth"}],reactions:["The peace-keeping was modeled early. You can choose differently now.","The hustle was inherited. Is it yours, or theirs running through you?","The emotional silence passed down. You can break the lineage.","You've consciously rewritten the script. That's generational courage."]},
+{id:66,emoji:"\ud83c\udf05",cat:"Hope",text:"On a hard day, what makes you believe things can get better?",answers:[{t:"They always have before.",trait:"resilience"},{t:"The people who believe in me.",trait:"connection"},{t:"I choose to believe it, even without proof.",trait:"optimism"},{t:"Honestly, some days I don't.",trait:"self_reflect"}],reactions:["Your history is your evidence. You've made it through 100% of your worst days.","Others hold hope when you can't. That's what connection is for.","Hope as a discipline, not a feeling. Powerful.","Some days hope is thin. Naming that honestly is its own strength."]},
+{id:67,emoji:"\ud83c\udfad",cat:"Authenticity",text:"When do you feel most like your true self?",answers:[{t:"Alone, with no one to perform for.",trait:"introvert"},{t:"With the few people who really get me.",trait:"connection"},{t:"When I'm creating or deeply focused.",trait:"driven"},{t:"Honestly, I'm not always sure who that is.",trait:"self_reflect"}],reactions:["Your truest self emerges in solitude. The audience changes you.","Real relationships unlock your real self. They're worth protecting.","You find yourself in the work. Flow is where your mask drops.","The true self is still coming into focus. That's an honest place to be."]},
+{id:68,emoji:"\u23f0",cat:"Mortality",text:"If you knew you had one year left, what would change immediately?",answers:[{t:"I'd repair relationships that matter.",trait:"connection"},{t:"I'd finally do the thing I keep delaying.",trait:"action"},{t:"I'd stop caring what people think.",trait:"freedom"},{t:"Surprisingly little. I'm living rightly.",trait:"identity_values"}],reactions:["Connection rises to the top when time runs short. Telling, isn't it?","The delay would end. So why wait for the deadline to begin?","Mortality frees you from others' opinions. Why not borrow that freedom now?","Your life already aligns with what matters. The rarest answer."]},
+{id:69,emoji:"\ud83e\udeb6",cat:"Lightness",text:"What would your life look like if you let go of one heavy thing you carry?",answers:[{t:"If I forgave myself for past mistakes.",trait:"self_critic"},{t:"If I stopped trying to control everything.",trait:"control"},{t:"If I stopped seeking everyone's approval.",trait:"people_please"},{t:"If I let myself rest without guilt.",trait:"martyrdom"}],reactions:["You carry old guilt like luggage. What if you set it down?","The grip is exhausting. Imagine trusting the current instead.","The approval-chasing weighs a ton. Whose approval do you actually need?","Rest feels unearned to you. Imagine deserving it just by existing."]},
+{id:70,emoji:"\ud83d\udc8e",cat:"Values",text:"What do you refuse to compromise on, no matter what?",answers:[{t:"My honesty and integrity.",trait:"authenticity"},{t:"The people I love.",trait:"connection"},{t:"My freedom and independence.",trait:"freedom"},{t:"My growth \u2014 I won't stagnate.",trait:"growth"}],reactions:["Your word is your spine. You'd lose much before you'd lose that.","Your loved ones are non-negotiable. Loyalty as bedrock.","You'd give up comfort before autonomy. The open road is sacred to you.","Becoming is your bottom line. Stillness feels like death to you."]},
+{id:71,emoji:"\ud83c\udf0a",cat:"Acceptance",text:"There's something about yourself you've struggled to accept. Where are you with it?",answers:[{t:"I've made genuine peace with it.",trait:"acceptance"},{t:"I'm working on it, slowly.",trait:"growth"},{t:"I still wish I could change it.",trait:"self_critic"},{t:"I mostly avoid thinking about it.",trait:"avoidance"}],reactions:["You've stopped fighting yourself. That's a quiet kind of victory.","Acceptance is a process and you're in it. Be gentle with the pace.","The resistance continues. What would acceptance actually cost you?","The unaccepted part waits in the dark. Light is the only way through."]},
+{id:72,emoji:"\ud83e\udd0d",cat:"Compassion",text:"How do you treat yourself when you fail at something important?",answers:[{t:"Like I'd treat a friend \u2014 with kindness.",trait:"self_aware"},{t:"Harshly. I'm my own worst critic.",trait:"self_critic"},{t:"I move on fast and don't dwell.",trait:"resilience"},{t:"I spiral and it colors everything.",trait:"rumination"}],reactions:["You extend yourself the grace you'd give others. Rare and healing.","The inner critic is brutal. It thinks it's helping. It isn't.","You don't marinate in failure. Healthy \u2014 as long as you also learn.","One failure floods the whole system. The spiral lies to you."]},
+{id:73,emoji:"\ud83d\udd2e",cat:"Becoming",text:"Who are you trying to become, if you're honest about it?",answers:[{t:"Someone more at peace with themselves.",trait:"self_aware"},{t:"Someone who matters and is remembered.",trait:"purpose"},{t:"Someone free \u2014 of fear, of others' grip.",trait:"freedom"},{t:"Someone who loves and is loved fully.",trait:"connection"}],reactions:["Inner peace is your north star. The journey home to yourself.","You're reaching for significance. Make sure you enjoy the climb.","Liberation is your aim. Freedom from, on the way to freedom for.","You're becoming more open-hearted. The bravest transformation."]},
+{id:74,emoji:"\ud83c\udf17",cat:"Integration",text:"Looking back at these reflections \u2014 what feels most true about you?",answers:[{t:"I lead with my heart, sometimes too much.",trait:"empathy"},{t:"I'm stronger and more aware than I admit.",trait:"confidence"},{t:"I'm still becoming, and that's okay.",trait:"growth"},{t:"I have patterns I'm finally ready to face.",trait:"self_reflect"}],reactions:["Your heart is your compass. It rarely steers you wrong \u2014 just tires you out.","You've been underestimating yourself. The evidence says otherwise.","You're a work in progress and at peace with it. The healthiest truth.","You've seen something here. Seeing clearly is where change begins."]},
+{emoji:"\ud83c\udfac",cat:"Beginnings",text:"You're starting something new and exciting. What's your first move?",answers:[{t:"Dive in headfirst and learn as I go.",trait:"action"},{t:"Plan thoroughly before taking a step.",trait:"logical"},{t:"Tell everyone \u2014 accountability fuels me.",trait:"relational"},{t:"Quietly start without telling anyone.",trait:"introvert"}],reactions:["You learn by doing. The water teaches you to swim.","You build the foundation first. Solid \u2014 if you don't over-build.","You announce to commit. Others' eyes keep you moving.","You protect new things until they're strong. Wise privacy."]},
+{emoji:"\ud83c\udf36\ufe0f",cat:"Tension",text:"You're holding a strong opinion in a room that disagrees with you.",answers:[{t:"I voice it clearly. Truth over comfort.",trait:"directness"},{t:"I stay quiet and keep the peace.",trait:"conflict_avoid"},{t:"I soften it into a question.",trait:"diplomacy"},{t:"I shift to agree with the majority.",trait:"people_please"}],reactions:["You'd rather be honest than liked. That takes a spine.","You swallow your view to keep harmony. What does the silence cost?","You smuggle truth in gently. Clever and kind.","You bend toward the room. Whose voice gets lost when you do?"]},
+{emoji:"\ud83e\uddd7",cat:"Persistence",text:"You've been working at something for months with little to show. You...",answers:[{t:"Keep going. Results take time.",trait:"driven"},{t:"Start doubting if it's worth it.",trait:"self_reflect"},{t:"Adjust the approach but keep the goal.",trait:"adaptive"},{t:"Quietly let it fade away.",trait:"avoidance"}],reactions:["You trust the long game. Patience plus persistence is unstoppable.","Doubt creeps in. Is it wisdom telling you to pivot, or fear telling you to quit?","You stay flexible on method, firm on destination. Smart.","You don't quit loudly \u2014 you just stop. What makes finishing so hard?"]},
+{emoji:"\ud83c\udf80",cat:"Praise",text:"Someone gives you a genuine, glowing compliment. Your honest reaction?",answers:[{t:"I accept it warmly. Thank you.",trait:"confidence"},{t:"I downplay it immediately.",trait:"deflection"},{t:"I feel suspicious of their motive.",trait:"detachment"},{t:"I glow but pretend it's no big deal.",trait:"performance"}],reactions:["You receive praise without deflecting. Healthy self-regard.","You bat away the good words. Why is being seen positively so hard?","You question kindness. Who taught you to distrust good things?","You feel it but hide it. The wanting to be seen is okay to admit."]},
+{emoji:"\ud83c\udf2a\ufe0f",cat:"Chaos",text:"Your life feels out of control right now. What's your instinct?",answers:[{t:"Control what I can, release the rest.",trait:"self_aware"},{t:"Try to control everything harder.",trait:"control"},{t:"Shut down until it passes.",trait:"avoidance"},{t:"Reach out to people for grounding.",trait:"connection"}],reactions:["You find the lever you can pull and let go of the rest. Mature.","You grip tighter when things slip. Does the grip ever actually help?","You go still in the storm. Surviving \u2014 but are you steering?","You anchor to others when adrift. Connection as ballast."]},
+{emoji:"\ud83e\udea7",cat:"Standards",text:"You did something well, but not as well as you wanted. How do you feel?",answers:[{t:"Proud. Good is good enough.",trait:"confidence"},{t:"Disappointed. I expect more of myself.",trait:"self_critic"},{t:"Motivated to do better next time.",trait:"growth"},{t:"I fixate on the flaw and miss the win.",trait:"rumination"}],reactions:["You celebrate progress over perfection. Freedom from the impossible standard.","The bar is always higher than your reach. Who keeps raising it?","You use the gap as fuel, not punishment. Healthy ambition.","One flaw eclipses the whole. The win was real too \u2014 can you see it?"]},
+{emoji:"\ud83e\udd14",cat:"Doubt",text:"You made a big decision. A week later, doubt creeps in. You...",answers:[{t:"Trust my past self made the right call.",trait:"confidence"},{t:"Spiral into endless re-evaluation.",trait:"rumination"},{t:"Look for evidence I was right.",trait:"self_reflect"},{t:"Stay open to changing course if needed.",trait:"adaptive"}],reactions:["You back your decisions. Second-guessing erodes \u2014 you refuse it.","You relitigate settled things. The deciding never quite ends.","You seek reassurance. Honest \u2014 just notice when it becomes a need.","You hold decisions loosely. Flexible, not flaky."]},
+{emoji:"\ud83e\udee7",cat:"Presence",text:"You're with someone you care about. Where is your mind, honestly?",answers:[{t:"Fully here. I'm present with them.",trait:"connection"},{t:"Half here, half on my phone or worries.",trait:"avoidance"},{t:"Planning what I'll say next.",trait:"performance"},{t:"It depends on the day.",trait:"self_reflect"}],reactions:["You give the gift of your full attention. Increasingly rare.","You're partially elsewhere. They feel the absence even if they don't say it.","You're rehearsing instead of receiving. What if you just listened?","Your presence flickers. Noticing when it fades is the first step."]},
+{emoji:"\ud83c\udff7\ufe0f",cat:"Labels",text:"Someone describes you in a way you don't fully agree with. You...",answers:[{t:"Let it go. I know who I am.",trait:"confidence"},{t:"Quietly internalize it and wonder.",trait:"self_reflect"},{t:"Correct them on the spot.",trait:"directness"},{t:"Adjust myself to fit or fight it.",trait:"people_please"}],reactions:["Their label can't stick because your self-knowledge is solid.","Their words plant a seed of doubt. Do you give others that power often?","You won't be mislabeled. You claim your own narrative.","Their view reshapes you. Whose definition are you living by?"]},
+{emoji:"\ud83c\udf3e",cat:"Patience",text:"You want something badly but it's not happening on your timeline.",answers:[{t:"Trust the timing. It'll come.",trait:"patience"},{t:"Get frustrated and try to force it.",trait:"control"},{t:"Question whether it'll happen at all.",trait:"catastrophizing"},{t:"Redirect energy elsewhere meanwhile.",trait:"adaptive"}],reactions:["You've made peace with the wait. Faith in the process.","You push against time itself. Does forcing ever speed it up?","The delay becomes denial in your mind. Is that fear or fact?","You stay productive while waiting. Patience in motion."]},
+{emoji:"\ud83c\udfad",cat:"Pretending",text:"You're somewhere you don't want to be, with people you'd rather not be around.",answers:[{t:"I make the best of it genuinely.",trait:"optimism"},{t:"I perform enthusiasm I don't feel.",trait:"performance"},{t:"I count down the minutes until I can leave.",trait:"avoidance"},{t:"I leave early without guilt.",trait:"boundaries"}],reactions:["You find the good even in the unwanted. A gift.","You fake the energy. Convincing \u2014 and quietly draining.","You endure rather than engage. Present in body, gone in spirit.","You honor your own limits. You don't owe anyone your endurance."]},
+{emoji:"\ud83c\udf08",cat:"Optimism",text:"Something uncertain is on the horizon. What does your mind assume?",answers:[{t:"It'll probably work out fine.",trait:"optimism"},{t:"It'll probably go wrong somehow.",trait:"catastrophizing"},{t:"I genuinely don't know, and that's okay.",trait:"acceptance"},{t:"I'll prepare for the worst, hope for best.",trait:"logical"}],reactions:["You default to hope. The glass refills itself in your mind.","You brace for impact. Does the bracing protect you, or just exhaust you?","You sit in uncertainty without forcing a story. Rare equanimity.","You hedge both ways. Pragmatic emotional insurance."]},
+{emoji:"\ud83d\udd0b",cat:"Energy",text:"What drains your energy faster than anything else?",answers:[{t:"Pretending to be okay when I'm not.",trait:"suppression"},{t:"Conflict and tension with others.",trait:"conflict_avoid"},{t:"Doing things that feel meaningless.",trait:"identity_values"},{t:"Being around lots of people too long.",trait:"introvert"}],reactions:["The mask is heavy. Authenticity would lighten the load.","Discord exhausts you. You feel others' friction in your own body.","Purposelessness drains you. You need your effort to matter.","Crowds deplete you. Solitude is how you refuel."]},
+{emoji:"\ud83c\udfaf",cat:"Intention",text:"Before reacting to something difficult, what usually happens inside you?",answers:[{t:"I pause and choose my response.",trait:"self_aware"},{t:"I react first, reflect later.",trait:"reactive"},{t:"I freeze and don't know what to do.",trait:"fear_change"},{t:"I default to keeping everyone calm.",trait:"people_please"}],reactions:["You've built the gap between stimulus and reaction. That gap is freedom.","The reaction beats the thought. Speed isn't always strength.","You lock up under pressure. The freeze is protection, but it traps you.","Your first move is managing others. When do you tend to yourself?"]},
+{emoji:"\ud83e\ude9f",cat:"Honesty",text:"How honest were you in answering these questions, really?",answers:[{t:"Completely. I came here for the truth.",trait:"authenticity"},{t:"Mostly, with a few comfortable answers.",trait:"self_reflect"},{t:"I told it how I wish I was.",trait:"performance"},{t:"More honest than I expected to be.",trait:"emotional_open"}],reactions:["You showed up real. The mirror only works if you do \u2014 and you did.","Mostly honest. Notice which questions you softened \u2014 those hold gold.","You answered as the ideal you. The gap between wish and truth is the work.","The honesty surprised you. Something in you wanted to be seen."]},
+{emoji:"\ud83c\udf1f",cat:"Closing",text:"After 90 days of looking at yourself \u2014 what's the one thing you want to remember?",answers:[{t:"That I'm allowed to be a work in progress.",trait:"growth"},{t:"That I'm stronger than I give myself credit.",trait:"confidence"},{t:"That my patterns aren't my prison.",trait:"self_aware"},{t:"That I deserve the same grace I give others.",trait:"self_critic"}],reactions:["You don't have to arrive. Becoming is the whole point.","The evidence is in. Stop underestimating yourself.","You can see them now. Seeing is the beginning of choosing.","Turn the compassion inward. You've earned your own kindness."]}
+];
+for(var qi=0;qi<Q.length;qi++){Q[qi].id=qi+1;}
+var QUOTES=["Day 1. You showed up. That's already more than most.", "You can't pour from an empty cup. But you can definitely drink straight from the carton.", "Growth is uncomfortable. So is staying exactly the same. Pick your discomfort wisely.", "The unexamined life is not worth living. The over-examined one needs a nap.", "You are a work in progress. All the best ones are.", "Today you were brave enough to look. That counts.", "Rest is not a reward. It is the work.", "Your feelings are valid. Even the weird 2am ones.", "You can't go back and change the beginning, but you can start where you are.", "Be the person your past self needed.", "Sometimes the most productive thing is to let something go.", "A soft answer can be just as honest as a hard one.", "You don't have to earn rest. You just have to take it.", "Your consistency is already impressive. You're on day 14.", "The goal isn't to be perfect. The goal is to be real.", "Healing isn't linear. Neither is charging your phone \u2014 you do it daily regardless.", "The bravest thing you can do is continue.", "You are allowed to outgrow what used to fit.", "Sometimes the wisest thing is simply to wait.", "Your patterns are not your prison. Just your starting point.", "Three weeks in. Most people don't make it this far. You did.", "Clarity is not a destination. It's a direction.", "Your inner critic is louder than it is accurate.", "Joy is not frivolous. It is evidence of alignment.", "The version of you still becoming is already remarkable.", "Boundaries are not walls. They are the door's address.", "You don't have to explain your peace to anyone.", "Four weeks. You're not just doing this \u2014 you're becoming someone who does this.", "Slow is smooth. Smooth is fast.", "Your history is not your destiny. It's your data.", "Sometimes the bravest words are 'I don't know yet.'", "The cracks are where the light gets in. And also where you dropped your phone last week.", "Progress doesn't always announce itself. Sometimes it just quietly is.", "Forgiveness is not a gift you give someone else. It's one you give yourself.", "You have survived 100% of your worst days. The odds are in your favor.", "Not every storm disrupts your life. Some clear your air.", "A little self-compassion goes a long way. Today, try a lot.", "You were not built for everyone's comfort. You were built for your own truth.", "Rest is how you honor the work you've already done.", "Some days the win is just staying soft in a world that wants you hard.", "Six weeks of looking honestly at yourself. That is not nothing.", "You don't need to have it all figured out. You just need to keep going.", "Curiosity is a superpower. It turns walls into doorways.", "The right things are often not the easy ones. And vice versa, unfortunately.", "You deserve the kindness you give to people who've never earned it.", "Your needs are not a burden. They are information.", "Every version of yourself got you here. Even the embarrassing ones.", "What you allow into your life is a reflection of what you believe you deserve.", "Seven weeks. You're halfway. That deserves a moment.", "The most radical thing you can do is know who you are.", "Confidence is not the absence of doubt. It's acting in spite of it.", "You are allowed to take up space. All of it.", "Silence is sometimes the most honest answer you can give.", "The things that move you are telling you something. Listen.", "You cannot pour from a drained cup. You also can't pour from one you refuse to fill.", "Fifty-six days. You're building something real.", "Not knowing is the first step toward knowing. Lean in.", "The hardest relationship you'll ever maintain is the one with yourself.", "Some truths need time before they can be spoken. Give them that.", "Grief and gratitude can coexist. You're allowed to hold both.", "Strength is not the absence of vulnerability. It is surviving it.", "You are the common thread in every chapter of your life. Read yourself kindly.", "Sixty-three days of showing up for yourself. That's a habit now.", "The roots are invisible. But they're holding everything up.", "Your future self is quietly grateful for the choices you're making today.", "Some seasons are for planting. Not every day needs to be harvest.", "The whole point of the mirror is not to judge what you see. It's to see clearly.", "You don't have to be at your best to be worthy. You just have to be.", "Good enough today is better than perfect never.", "Seventy days. You've shown yourself something important.", "The bravest act is often choosing to stay open.", "You have more tools than you remember. You've been building them quietly.", "Healing is not linear. But it is cumulative. You're adding up.", "What you resist, you carry. What you face, you can set down.", "You are not the person who started this. And that's exactly the point.", "Ten weeks of quiet honesty. That changes a person.", "The closer you get to the end, the more you've already done.", "Seventy-eight days. Almost there. Almost isn't everywhere \u2014 it's nearly.", "You've asked yourself harder questions than most people ever will.", "The last few days of anything always feel both too long and too short.", "Presence is the greatest gift you can give yourself. You've been practicing.", "Eighty-one days of choosing to look. That's a life change, not a habit.", "The person who started day one didn't know what day ninety would feel like. Now you do.", "You showed up for yourself eighty-three times. That's not nothing.", "Almost every answer you gave was braver than you realized.", "What you'll remember most isn't the questions. It's who answered them.", "Day eighty-six. The horizon isn't far now.", "Four days. You've been honest with yourself for four days less than ninety.", "Three days from the end. Or the beginning. Depends how you look at it.", "Two days. You made it this far by simply continuing.", "Tomorrow is the last question. Tonight, notice how you feel about that.", "Day ninety. You did it. Not perfectly. Honestly. That's better."];
+var SHADOW_Q=[{"id": 1, "cat": "Identity", "q": "What part of yourself do you hide most carefully from others?"}, {"id": 2, "cat": "Identity", "q": "When do you feel most like a fraud?"}, {"id": 3, "cat": "Identity", "q": "What would you do if you knew no one was watching and there were no consequences?"}, {"id": 4, "cat": "Identity", "q": "Which of your qualities do you secretly believe is a flaw pretending to be a strength?"}, {"id": 5, "cat": "Identity", "q": "What version of yourself are you most afraid others will discover?"}, {"id": 6, "cat": "Relationships", "q": "What do you repeatedly attract in relationships that you don't want?"}, {"id": 7, "cat": "Relationships", "q": "Who in your life brings out the worst in you — and what does that reveal about you?"}, {"id": 8, "cat": "Relationships", "q": "What do you need from others that you refuse to ask for?"}, {"id": 9, "cat": "Relationships", "q": "Who have you never fully forgiven, and what would it cost you to do so?"}, {"id": 10, "cat": "Relationships", "q": "What behavior in others irritates you most — and where do you do the same thing?"}, {"id": 11, "cat": "Relationships", "q": "What do you wish someone would say to you that you've never heard?"}, {"id": 12, "cat": "Relationships", "q": "Where in your relationships do you perform instead of connect?"}, {"id": 13, "cat": "Anger", "q": "What are you still angry about that you pretend you're over?"}, {"id": 14, "cat": "Anger", "q": "Who do you resent, and what need of yours went unmet in that situation?"}, {"id": 15, "cat": "Anger", "q": "When you feel anger, what is it usually protecting underneath?"}, {"id": 16, "cat": "Anger", "q": "What do you judge most harshly in others that you fear in yourself?"}, {"id": 17, "cat": "Anger", "q": "What would you say to someone who hurt you if there were no fallout?"}, {"id": 18, "cat": "Fear", "q": "What are you most afraid of becoming?"}, {"id": 19, "cat": "Fear", "q": "What do you procrastinate most — and what does that fear actually protect?"}, {"id": 20, "cat": "Fear", "q": "What truth about yourself are you most resistant to looking at directly?"}, {"id": 21, "cat": "Fear", "q": "What would you attempt if failure were completely private?"}, {"id": 22, "cat": "Fear", "q": "Where in your life are you choosing safety over aliveness?"}, {"id": 23, "cat": "Fear", "q": "What are you afraid will happen if you let yourself fully rest?"}, {"id": 24, "cat": "Shame", "q": "What do you feel most ashamed of that you've never told anyone?"}, {"id": 25, "cat": "Shame", "q": "What part of your past do you most wish you could rewrite?"}, {"id": 26, "cat": "Shame", "q": "When do you feel like you don't deserve good things?"}, {"id": 27, "cat": "Shame", "q": "What mistake do you still punish yourself for?"}, {"id": 28, "cat": "Shame", "q": "What about your upbringing are you most embarrassed by?"}, {"id": 29, "cat": "Shame", "q": "What do you most judge yourself for wanting?"}, {"id": 30, "cat": "Desires", "q": "What do you want that you've convinced yourself you shouldn't?"}, {"id": 31, "cat": "Desires", "q": "What need do you dismiss as weakness but secretly carry everywhere?"}, {"id": 32, "cat": "Desires", "q": "If you could change one thing about your life without anyone knowing, what would it be?"}, {"id": 33, "cat": "Desires", "q": "What pleasure do you deny yourself and why?"}, {"id": 34, "cat": "Desires", "q": "What does your body want that your mind keeps overriding?"}, {"id": 35, "cat": "Power", "q": "Where in your life do you exert control because vulnerability feels too dangerous?"}, {"id": 36, "cat": "Power", "q": "When do you shrink yourself to make others comfortable?"}, {"id": 37, "cat": "Power", "q": "What power do you have that you pretend you don't?"}, {"id": 38, "cat": "Power", "q": "Where do you give your power away, and to whom?"}, {"id": 39, "cat": "Power", "q": "What would change if you stopped waiting for permission?"}, {"id": 40, "cat": "The Past", "q": "What childhood version of you is still making decisions in your adult life?"}, {"id": 41, "cat": "The Past", "q": "What did you need as a child that you never received?"}, {"id": 42, "cat": "The Past", "q": "What story from your past are you still living inside of?"}, {"id": 43, "cat": "The Past", "q": "Who taught you that certain parts of you were unacceptable?"}, {"id": 44, "cat": "The Past", "q": "What wound have you turned into a personality trait?"}, {"id": 45, "cat": "The Past", "q": "What did you have to become to survive your family?"}, {"id": 46, "cat": "Worth", "q": "Under what conditions do you feel you are enough?"}, {"id": 47, "cat": "Worth", "q": "What do you believe you have to do to be loved?"}, {"id": 48, "cat": "Worth", "q": "Where does your sense of worth come from — and what happens when it disappears?"}, {"id": 49, "cat": "Worth", "q": "What do you give away too freely in exchange for feeling accepted?"}, {"id": 50, "cat": "Worth", "q": "What would you have to believe about yourself to stop seeking external validation?"}, {"id": 51, "cat": "Becoming", "q": "Who are you most afraid of becoming — and how much of that person is already in you?"}, {"id": 52, "cat": "Becoming", "q": "What version of your future self are you self-sabotaging right now?"}, {"id": 53, "cat": "Becoming", "q": "What is the cost of staying exactly as you are?"}, {"id": 54, "cat": "Becoming", "q": "What change are you waiting for someone else to initiate?"}, {"id": 55, "cat": "Becoming", "q": "What would the most honest version of your life actually look like?"}, {"id": 56, "cat": "Integration", "q": "What part of yourself have you exiled that is actually trying to protect you?"}, {"id": 57, "cat": "Integration", "q": "What do you need to grieve that you haven't allowed yourself to?"}, {"id": 58, "cat": "Integration", "q": "What would it mean to truly accept all of yourself — the parts you're proud of and the parts you're not?"}, {"id": 59, "cat": "Integration", "q": "What is the most loving thing you could do for yourself right now that you keep refusing?"}, {"id": 60, "cat": "Integration", "q": "If the shadow parts of you could speak, what would they most need you to hear?"}];
+var PERSONALITY_TYPES={"empathy": {"name": "The Nurturer", "desc": "You lead with your heart. Your emotional intelligence is your greatest strength — and your most demanding teacher.", "color": "#f472b6"}, "connection": {"name": "The Connector", "desc": "Relationships are your medium. You see people deeply and draw out what others miss.", "color": "#f0abfc"}, "directness": {"name": "The Truth-Teller", "desc": "You speak what others feel but won't say. Honesty is your north star, sometimes at a cost.", "color": "#60a5fa"}, "assertive": {"name": "The Advocate", "desc": "You stand for things. You hold your ground with warmth, not aggression.", "color": "#38bdf8"}, "self_reflect": {"name": "The Seeker", "desc": "You are driven by self-understanding. The examined life is not just worth living — it's the only one you know.", "color": "#a78bfa"}, "philosophical": {"name": "The Deep Diver", "desc": "You live in the questions others avoid. The uncomfortable truths feel like home to you.", "color": "#c084fc"}, "growth": {"name": "The Evolver", "desc": "You are never done becoming. Stagnation is your greatest fear — and growth your greatest comfort.", "color": "#34d399"}, "driven": {"name": "The Builder", "desc": "You are made of momentum. Your capacity to push forward is extraordinary — rest is where you learn.", "color": "#5eead4"}, "boundaries": {"name": "The Guardian", "desc": "You know your limits and honor them. Protecting your energy isn't selfish — it's how you stay whole.", "color": "#fcd34d"}, "freedom": {"name": "The Free Spirit", "desc": "You are built for open spaces. Structure serves you only when it serves your expansion.", "color": "#fb923c"}, "resilience": {"name": "The Survivor", "desc": "You have been broken and rebuilt. Your strength isn't the absence of pain — it's what you did with it.", "color": "#86efac"}, "acceptance": {"name": "The Still Point", "desc": "You've learned that peace isn't the absence of difficulty. You carry a quiet that others seek.", "color": "#67e8f9"}, "default": {"name": "The Unfolding", "desc": "You are still becoming clear to yourself. This is not a gap — it is the most honest place to be.", "color": "#a78bfa"}};
+
+var JP_BANKS=[
+  [["Right now, in this exact moment -- what does your body feel like?","A tightness? Ease? Tension you had not noticed?"],["What is one thing that happened today you would normally rush past?","Something small. A sound, a moment, a shift."],["What emotion has been quietly following you today?","You do not have to name it perfectly -- just describe it."]],
+  [["What thought keeps returning to you lately?","The one you keep not finishing."],["When did you feel most present today?","Even for just a moment."],["What do you need right now that you have not asked for?","From yourself, or from someone else."]],
+  [["What has quietly changed in you over these past months?","Even something small counts."],["What would you tell someone you love who felt exactly how you feel right now?",""],["What are you slowly beginning to believe about yourself?","Something that was not quite true a year ago."]]
+];
+function getPrompts(di){return JP_BANKS[di<30?0:(di<60?1:2)];}
+
+var TRAITS_META={empathy:{name:"Empathy",icon:"💛"},conflict_avoid:{name:"Conflict Avoidance",icon:"🌊"},authenticity:{name:"Authenticity",icon:"🪞"},performance:{name:"Social Performance",icon:"🎭"},self_reflect:{name:"Self-Reflection",icon:"🔍"},defensiveness:{name:"Defensiveness",icon:"🛡️"},people_please:{name:"People-Pleasing",icon:"🕊️"},confidence:{name:"Self-Confidence",icon:"⚡"},resilience:{name:"Resilience",icon:"🌱"},catastrophizing:{name:"Catastrophizing",icon:"⛈️"},suppression:{name:"Suppression",icon:"🧊"},social_coping:{name:"Social Coping",icon:"🤝"},passive:{name:"Passive Tension",icon:"🌀"},boundaries:{name:"Boundaries",icon:"🚧"},assertive:{name:"Assertiveness",icon:"🎯"},humility:{name:"Humility",icon:"🍃"},scorekeeping:{name:"Scorekeeping",icon:"📊"},introvert:{name:"Introversion",icon:"🔇"},avoidance:{name:"Avoidance",icon:"🚪"},driven:{name:"Drive",icon:"🔥"},adaptive:{name:"Adaptability",icon:"🌊"},directness:{name:"Directness",icon:"➡️"},reactive:{name:"Reactivity",icon:"⚡"},detachment:{name:"Emotional Distance",icon:"🌙"},identity_work:{name:"Work Identity",icon:"💼"},identity_values:{name:"Values-Led",icon:"🧭"},identity_social:{name:"Social Identity",icon:"😄"},deflection:{name:"Deflection",icon:"🪃"},risk_take:{name:"Risk-Taking",icon:"🎲"},fear_change:{name:"Fear of Change",icon:"⚓"},logical:{name:"Logical Mind",icon:"🧮"},relational:{name:"Relational Thinking",icon:"🔗"},diplomacy:{name:"Diplomacy",icon:"🕊️"},space_giving:{name:"Space-Giving",icon:"🌌"},problem_solve:{name:"Problem-Solving",icon:"🔧"},rumination:{name:"Rumination",icon:"🌀"},philosophical:{name:"Philosophical Mind",icon:"✨"},blame_external:{name:"External Focus",icon:"👆"},acceptance:{name:"Acceptance",icon:"🌸"},action:{name:"Bias to Action",icon:"🚀"},patience:{name:"Patience",icon:"⏳"},freedom:{name:"Freedom",icon:"🦅"},security:{name:"Security",icon:"🏠"},connection:{name:"Connection",icon:"💞"},growth:{name:"Growth",icon:"📈"},control:{name:"Need for Control",icon:"🎛️"},loyalty:{name:"Loyalty",icon:"🤝"},pragmatic:{name:"Pragmatism",icon:"⚙️"},wisdom:{name:"Wisdom",icon:"🦉"},self_critic:{name:"Self-Criticism",icon:"⚠️"},self_care:{name:"Self-Care",icon:"🌿"},extrovert:{name:"Extroversion",icon:"🌟"},optimism:{name:"Optimism",icon:"☀️"},present_focus:{name:"Present Focus",icon:"🎯"},martyrdom:{name:"Martyrdom",icon:"⚖️"},emotional_open:{name:"Emotional Openness",icon:"💜"},purpose:{name:"Purpose-Driven",icon:"🌟"},recovery:{name:"Recovery",icon:"🌙"},self_aware:{name:"Self-Awareness",icon:"👁️"}};
+
+function gs(){try{return JSON.parse(localStorage.getItem("mirrors_v3")||"{}");}catch(e){return{};}}
+function ss(s){localStorage.setItem("mirrors_v3",JSON.stringify(s));}
+var state=gs();
+if(!state.answers)state.answers={};
+if(!state.traits)state.traits={};
+if(!state.streak)state.streak=0;
+if(!state.lastPlayed)state.lastPlayed="";
+if(typeof state.tolerance==="undefined")state.tolerance=5;
+if(!state.name)state.name="";
+if(!state.dayIndex)state.dayIndex=0;
+if(!state.journal)state.journal={};
+if(!state.shadow)state.shadow={};
+if(!state.weeklyShown)state.weeklyShown={};
+var currentQ=null,currentScore=0,currentShadowId=null,currentNav=0;
+
+function today(){var d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function pad(n){return n<10?"0"+n:""+n;}
+function showScreen(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});var el=document.getElementById(id);el.classList.add("active");if(el.classList.contains("scroll"))el.scrollTop=0;}
+function toast(m){var t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2800);}
+function tolLabel(v){v=parseInt(v);if(v<=3)return"Gentle";if(v<=6)return"Balanced";if(v<=8)return"Honest";return"Unflinching";}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function getPrev(d){var dd=new Date(d+"T12:00:00");dd.setDate(dd.getDate()-1);return dd.getFullYear()+"-"+pad(dd.getMonth()+1)+"-"+pad(dd.getDate());}
+function getWeekDates(n){var t=today(),days=[];n=n||6;for(var i=n;i>=0;i--){var d=new Date(t+"T12:00:00");d.setDate(d.getDate()-i);days.push(d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()));}return days;}
+function showNav(){document.getElementById("bnav").classList.add("show");}
+function hideNav(){document.getElementById("bnav").classList.remove("show");}
+function navTo(idx){currentNav=idx;["bnav0","bnav1","bnav2"].forEach(function(id,i){document.getElementById(id).classList.toggle("on",i===idx);});if(idx===0)showGame();else if(idx===1)showShadow();else showJourney();}
+function startOnboard(){if(state.name){showNav();showGame();return;}showScreen("sOnboard");}
+function obNext1(){var n=document.getElementById("nameIn").value.trim();if(!n){toast("Tell us your name first");return;}state.name=n;document.getElementById("ob1").classList.remove("show");document.getElementById("ob2").classList.add("show");}
+function updateTol(v){document.getElementById("tolVal").textContent=tolLabel(v);}
+function obNext2(){state.tolerance=parseInt(document.getElementById("tolSl").value);ss(state);showNav();showGame();}
+
+function showGame(){currentNav=0;["bnav0","bnav1","bnav2"].forEach(function(id,i){document.getElementById(id).classList.toggle("on",i===0);});showScreen("sGame");renderProg();loadQuestion();}
+function renderProg(){var di=state.dayIndex||0,pct=Math.round((di/90)*100);document.getElementById("progFill").style.width=pct+"%";document.getElementById("progTxt").textContent="Day "+(di+1)+" of 90";document.getElementById("progPct").textContent=pct+"%";document.getElementById("streakN").textContent=state.streak||0;}
+function loadQuestion(){
+  var di=state.dayIndex||0;
+  if(di>=90){generateReport();return;}
+  currentQ=Q[di];
+  document.getElementById("qDay").textContent="DAY "+(di+1);
+  document.getElementById("qEmoji").textContent=currentQ.emoji;
+  document.getElementById("qCat").textContent=currentQ.cat;
+  document.getElementById("qText").textContent=currentQ.text;
+  var t=today(),played=state.answers[t];
+  var html="",L=["A","B","C","D"];
+  currentQ.answers.forEach(function(a,i){var sel=played&&played.idx===i;html+='<button class="ans'+(sel?" sel":"")+'" onclick="selectAns('+i+',this)"><span class="ans-ltr">'+L[i]+'</span><span>'+a.t+'</span></button>';});
+  document.getElementById("answers").innerHTML=html;
+  document.getElementById("reaction").classList.remove("show");
+  var mindDone=state.journal[t]&&state.journal[t].saved;
+  if(played){showReaction(played.idx);var btn=document.getElementById("toMindBtn");btn.className="primary-btn";btn.textContent=mindDone?"View today's reflection \u2192":"Continue to reflection \u2192";}
+  else{document.getElementById("toMindBtn").className="primary-btn hidden";}
+}
+function selectAns(idx,el){var t=today();if(state.answers[t])return;document.querySelectorAll(".ans").forEach(function(b){b.classList.remove("sel");});el.classList.add("sel");saveAnswer(idx);showReaction(idx);document.getElementById("toMindBtn").className="primary-btn";}
+function saveAnswer(idx){var t=today(),ans=currentQ.answers[idx];state.answers[t]={qId:currentQ.id,idx:idx,trait:ans.trait};if(!state.traits[ans.trait])state.traits[ans.trait]=0;state.traits[ans.trait]+=3;var prev=getPrev(t);if(state.lastPlayed===prev)state.streak=(state.streak||0)+1;else if(state.lastPlayed!==t)state.streak=1;state.lastPlayed=t;document.getElementById("streakN").textContent=state.streak;ss(state);}
+function showReaction(idx){var r=document.getElementById("reaction");var em=["\ud83d\udcad","\ud83c\udf00","\u2728","\ud83d\udd11"];document.getElementById("rEmoji").textContent=em[idx%4];document.getElementById("rTxt").textContent=currentQ.reactions[idx];r.classList.add("show");}
+function backToGame(){showGame();}
+
+function showMindfulness(){
+  var t=today(),di=state.dayIndex||0,jd=state.journal[t]||{},saved=jd.saved;
+  var prompts=getPrompts(di),pHtml="";
+  prompts.forEach(function(p,i){var val=jd["p"+(i+1)]||"";pHtml+='<div class="j-num">Prompt '+(i+1)+'</div><div class="j-q">'+p[0]+'</div>';if(p[1])pHtml+='<div class="j-sub">'+p[1]+'</div>';pHtml+='<textarea class="j-ta" id="jp'+(i+1)+'" placeholder="Take your time..."'+(saved?' disabled':'')+'>'+(val?esc(val):'')+'</textarea>';});
+  document.getElementById("presencePrompts").innerHTML=pHtml;
+  ["g1","g2","g3"].forEach(function(gid){var el=document.getElementById(gid);el.value=jd[gid]||"";if(saved)el.disabled=true;});
+  currentScore=jd.score||0;
+  document.querySelectorAll(".score-btn").forEach(function(b){b.classList.toggle("sel",parseInt(b.dataset.v)===currentScore);});
+  if(jd.score&&jd.score<=2){document.getElementById("scoreExpand").style.display="block";var sta=document.getElementById("scoreTa");sta.value=jd.scoreNote||"";if(saved)sta.disabled=true;}
+  else{document.getElementById("scoreExpand").style.display="none";}
+  document.getElementById("quoteTxt").textContent=QUOTES[di%QUOTES.length]||QUOTES[0];
+  var btn=document.getElementById("saveMindBtn"),badge=document.getElementById("savedBadge");
+  if(saved){btn.textContent="Already saved \u2713";btn.style.opacity="0.5";btn.style.pointerEvents="none";badge.className="saved-badge show";}
+  else{btn.textContent="Save reflection";btn.style.opacity="1";btn.style.pointerEvents="all";badge.className="saved-badge";}
+  showScreen("sMind");
+}
+function toggleSec(id){var hd=document.querySelector("#"+id+" .j-sec-hd"),body=document.getElementById("body_"+id),chev=document.getElementById("chev_"+id),isOpen=body.classList.contains("open");body.classList.toggle("open",!isOpen);hd.classList.toggle("open",!isOpen);chev.classList.toggle("open",!isOpen);}
+function selectScore(v){if(state.journal[today()]&&state.journal[today()].saved)return;currentScore=v;document.querySelectorAll(".score-btn").forEach(function(b){b.classList.toggle("sel",parseInt(b.dataset.v)===v);});document.getElementById("scoreExpand").style.display=v<=2?"block":"none";}
+function saveMindfulness(){
+  var t=today(),di=state.dayIndex||0;
+  if(!state.journal[t])state.journal[t]={};
+  var jd=state.journal[t];
+  for(var i=1;i<=3;i++){var el=document.getElementById("jp"+i);if(el)jd["p"+i]=el.value;}
+  jd.g1=document.getElementById("g1").value;jd.g2=document.getElementById("g2").value;jd.g3=document.getElementById("g3").value;
+  jd.score=currentScore;if(currentScore<=2)jd.scoreNote=document.getElementById("scoreTa").value;
+  jd.saved=true;state.dayIndex=(state.dayIndex||0)+1;ss(state);
+  var badge=document.getElementById("savedBadge");badge.className="saved-badge show";
+  var btn=document.getElementById("saveMindBtn");btn.textContent="Saved \u2713";btn.style.opacity="0.5";btn.style.pointerEvents="none";
+  document.querySelectorAll("#sMind textarea,#sMind input[type=text]").forEach(function(el){el.disabled=true;});
+  var newDi=state.dayIndex,weekNum=Math.floor(newDi/7);
+  if(newDi>0&&newDi%7===0){var wk="week"+weekNum;if(!state.weeklyShown[wk]){state.weeklyShown[wk]=true;ss(state);setTimeout(function(){showWeeklyPopup(weekNum);},1400);return;}}
+  toast("Day "+newDi+" complete \u2726 See you tomorrow");
+  setTimeout(function(){if(state.dayIndex>=90)generateReport();else showGame();},1600);
+}
+
+function getPersonalityType(){var top=getTop(1);if(!top.length)return"default";var key=top[0].key;if(PERSONALITY_TYPES[key])return key;var map={people_please:"empathy",social_coping:"connection",space_giving:"connection",problem_solve:"driven",logical:"driven",adaptive:"resilience",conflict_avoid:"empathy",suppression:"resilience",rumination:"philosophical",self_reflect:"philosophical",self_critic:"self_reflect",martyrdom:"boundaries",scorekeeping:"directness",reactive:"directness",detachment:"philosophical",identity_work:"driven",identity_values:"authenticity",identity_social:"connection",deflection:"authenticity",fear_change:"resilience",risk_take:"freedom",patience:"acceptance",security:"acceptance",loyalty:"connection",pragmatic:"driven",wisdom:"philosophical",emotional_open:"empathy",purpose:"driven",recovery:"resilience",self_aware:"philosophical",self_care:"boundaries",extrovert:"connection",optimism:"resilience",present_focus:"acceptance",passive:"empathy",humility:"authenticity",acceptance:"acceptance"};return map[key]||"default";}
+
+function showWeeklyPopup(weekNum){
+  var days=getWeekDates(6);
+  document.getElementById("wkTitle").textContent="Week "+weekNum+" Complete";
+  document.getElementById("wkSub").textContent="Days "+(weekNum*7-6)+" \u2013 "+(weekNum*7)+" \u00b7 Your reflection";
+  var persona=getPersonalityType(),pt=PERSONALITY_TYPES[persona]||PERSONALITY_TYPES["default"];
+  var top=getTop(5);
+  var moodData=[];
+  days.forEach(function(d){var jd=state.journal[d],sc=jd&&jd.score?jd.score:0,dn=new Date(d+"T12:00:00").toLocaleDateString("en-CA",{weekday:"short"}).toUpperCase().slice(0,2);moodData.push({day:dn,score:sc});});
+  var html='<div class="persona-card" style="background:linear-gradient(135deg,'+pt.color+'18,'+pt.color+'08);border:1px solid '+pt.color+'28;border-radius:18px;padding:18px;margin-bottom:18px">';
+  html+='<div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:'+pt.color+';margin-bottom:8px">EMERGING ARCHETYPE</div>';
+  html+='<div style="font-family:\'Fraunces\',serif;font-size:22px;font-style:italic;color:'+pt.color+';margin-bottom:6px">'+pt.name+'</div>';
+  html+='<div style="font-size:13px;line-height:1.6;color:rgba(236,234,246,0.75)">'+pt.desc+'</div></div>';
+  if(top.length){
+    html+='<div class="wk-section"><div class="wk-lbl">Trait Profile</div><div class="trait-bars">';
+    var maxV=top[0].val;
+    top.forEach(function(t){var m=TRAITS_META[t.key]||{name:t.key,icon:"\u2022"};var pct=Math.round((t.val/Math.max(maxV,1))*100);
+      html+='<div class="tb-row"><div class="tb-label">'+m.icon+" "+m.name+'</div><div class="tb-track"><div class="tb-fill" style="width:'+pct+'%;background:'+pt.color+'"></div></div><div class="tb-val">'+t.val+'</div></div>';});
+    html+='</div></div>';
+  }
+  var hasMood=moodData.some(function(m){return m.score>0;});
+  if(hasMood){
+    html+='<div class="wk-section"><div class="wk-lbl">Mood This Week</div><div class="mood-chart">';
+    moodData.forEach(function(m){var h=m.score>0?Math.round((m.score/5)*100):8;var c=m.score===0?"var(--s3)":m.score<=2?"var(--rose)":m.score===3?"var(--gold)":"var(--sage)";
+      html+='<div class="mood-bar-col"><div class="mood-bar-num" style="color:'+c+'">'+(m.score||"")+'</div><div class="mood-bar-inner" style="height:'+h+'%;background:'+c+'"></div><div class="mood-bar-day">'+m.day+'</div></div>';});
+    html+='</div></div>';
+  }
+  html+='<div class="wk-section"><div class="wk-lbl">This Week\'s Observation</div><div class="wk-txt">'+buildWeeklyInsight(weekNum,top,moodData,pt)+'</div></div>';
+  html+='<div class="wk-section"><div class="wk-lbl">A Question for Week '+(weekNum+1)+'</div><div class="wk-txt" style="color:var(--a2)">'+getWeeklyQ(weekNum,top)+'</div></div>';
+  document.getElementById("wkContent").innerHTML=html;
+  document.getElementById("wkOverlay").classList.add("show");
+}
+function closeWeekly(){document.getElementById("wkOverlay").classList.remove("show");toast("Week complete \u2726 See you tomorrow");setTimeout(function(){if(state.dayIndex>=90)generateReport();else showGame();},800);}
+function buildWeeklyInsight(wn,top,mood,pt){
+  var tol=state.tolerance,n1=top[0]?TRAITS_META[top[0].key].name.toLowerCase():"awareness";
+  var avgM=0,mc=0;mood.forEach(function(m){if(m.score>0){avgM+=m.score;mc++;}});avgM=mc>0?avgM/mc:0;
+  var ms=avgM>=4?"Your mood has been strong this week.":avgM>=3?"Your mood stayed fairly even.":avgM>0?"Some difficult days showed up this week. That is data, not failure.":"";
+  var g=["You are showing up consistently, and that matters. "+n1+" keeps emerging as a thread worth following deeper. "+ms,"Seven days of honest reflection. What is emerging is someone who leads with "+n1+". "+ms];
+  var b=["The pattern this week is "+n1+" -- it appeared across your choices in ways worth noticing. "+ms+" The evolution is happening, even when quiet.","Week "+wn+" reveals something consistent: "+n1+" is your operating frequency right now. "+ms+" What you do with it is up to you."];
+  var r=[""+n1+" keeps showing up. This week it was unmistakable. "+ms+" The question now is whether it is a choice or a reflex.","Seven days of data, and "+n1+" is the throughline. "+ms+" That consistency is either your greatest strength or your most comfortable escape. Possibly both."];
+  var p=tol<=3?g:(tol<=7?b:r);return p[wn%p.length];
+}
+function getWeeklyQ(wn,top){
+  var n1=top[0]?TRAITS_META[top[0].key].name.toLowerCase():"your patterns";
+  var qs=["What would change if you acted from your values instead of your habits this week?","Where is "+n1+" serving you -- and where might it be running on autopilot?","What small thing could you do differently this week to feel more like yourself?","What conversation have you been postponing that this week might be ready for?","Where in your life are you performing rather than being?","What does rest actually look like for you -- and when did you last have it?","What would the most honest version of you do with the rest of this journey?","If your "+n1+" had a message for you, what would it say?","What have you learned about yourself these past weeks that surprises you?","What pattern are you ready to name -- not to judge, but to finally see clearly?","What are you becoming, and is it who you want to be?","Who would you be if you were not afraid of what people would think?"];
+  return qs[wn%qs.length];
+}
+
+function showShadow(){
+  currentNav=1;["bnav0","bnav1","bnav2"].forEach(function(id,i){document.getElementById(id).classList.toggle("on",i===1);});
+  var t=today(),todaySw=state.shadow&&state.shadow[t]?Object.keys(state.shadow[t]).length:0;
+  document.getElementById("swQuota").textContent=todaySw+" / 3";
+  var cats={};
+  SHADOW_Q.forEach(function(q){if(!cats[q.cat])cats[q.cat]=[];cats[q.cat].push(q);});
+  var html="";
+  Object.keys(cats).forEach(function(cat){
+    var items=cats[cat],answeredInCat=items.filter(function(q){return state.shadow&&state.shadow[q.id];}).length;
+    var catId="swcat_"+cat.replace(/\s+/g,"_");
+    html+='<div style="background:var(--s1);border:1px solid var(--border);border-radius:18px;margin-bottom:10px;overflow:hidden">';
+    html+='<div class="sw-cat-hd" onclick="toggleSwCat(\''+catId+'\')"><span class="sw-cat-name">'+cat+'</span>';
+    html+='<span style="display:flex;align-items:center"><span class="sw-cat-meta">'+answeredInCat+"/"+items.length+'</span><span class="sw-cat-chev" id="chev_'+catId+'">&#9660;</span></span></div>';
+    html+='<div class="sw-cat-body" id="'+catId+'">';
+    items.forEach(function(q){
+      var answered=state.shadow&&state.shadow[q.id];
+      var canAnswer=todaySw<3||answered;
+      html+='<div class="sw-q-row'+(answered?" answered":"")+'" onclick="'+(canAnswer?"openShadow("+q.id+")":'showSwLimit()')+'">';
+      html+='<span class="sw-q-ico">'+(answered?"✓":"📖")+'</span>';
+      html+='<span class="sw-q-txt">'+q.q+'</span></div>';
+    });
+    html+='</div></div>';
+  });
+  document.getElementById("swList").innerHTML=html;
+  showScreen("sShadow");
+}
+function toggleSwCat(id){var body=document.getElementById(id),chev=document.getElementById("chev_"+id),isOpen=body.classList.contains("open");body.classList.toggle("open",!isOpen);if(chev)chev.classList.toggle("open",!isOpen);}
+function showSwLimit(){toast("You have reached your 3 questions for today \u2014 come back tomorrow \ud83c\udf19");}
+function openShadow(id){
+  var q=SHADOW_Q.find(function(x){return x.id===id;});if(!q)return;
+  currentShadowId=id;
+  document.getElementById("swModalCat").textContent=q.cat.toUpperCase();
+  document.getElementById("swModalQ").textContent=q.q;
+  var existing=state.shadow&&state.shadow[id]?state.shadow[id].answer:"";
+  var ta=document.getElementById("swTa");ta.value=existing;
+  var t=today(),todaySw=state.shadow&&state.shadow[t]?Object.keys(state.shadow[t]).length:0;
+  var alreadyAnswered=state.shadow&&state.shadow[id];
+  var btn=document.getElementById("swSaveBtn");
+  if(alreadyAnswered){ta.disabled=false;btn.textContent="Update reflection";btn.style.opacity="1";btn.style.pointerEvents="all";}
+  else if(todaySw>=3){ta.disabled=true;btn.textContent="Limit reached for today";btn.style.opacity="0.5";btn.style.pointerEvents="none";}
+  else{ta.disabled=false;btn.textContent="Save reflection";btn.style.opacity="1";btn.style.pointerEvents="all";}
+  document.getElementById("swOverlay").classList.add("show");
+}
+function saveShadow(){
+  if(!currentShadowId)return;
+  var ta=document.getElementById("swTa");if(!ta.value.trim()){toast("Write something first");return;}
+  if(!state.shadow)state.shadow={};
+  var t=today();if(!state.shadow[t])state.shadow[t]={};
+  state.shadow[t][currentShadowId]=true;
+  state.shadow[currentShadowId]={answer:ta.value,date:t};
+  ss(state);closeShadow();toast("Saved \u2726");setTimeout(function(){showShadow();},400);
+}
+function closeShadow(){document.getElementById("swOverlay").classList.remove("show");}
+
+function showJourney(){
+  currentNav=2;["bnav0","bnav1","bnav2"].forEach(function(id,i){document.getElementById(id).classList.toggle("on",i===2);});
+  document.getElementById("streakN2").textContent=state.streak||0;
+  var di=state.dayIndex||0,top=getTop(6),persona=getPersonalityType(),pt=PERSONALITY_TYPES[persona]||PERSONALITY_TYPES["default"],days=getWeekDates(6);
+  var html='<div style="background:linear-gradient(135deg,'+pt.color+'18,'+pt.color+'08);border:1px solid '+pt.color+'28;border-radius:22px;padding:22px;margin-bottom:16px">';
+  html+='<div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:'+pt.color+';margin-bottom:10px">YOUR CURRENT ARCHETYPE</div>';
+  html+='<div style="font-family:\'Fraunces\',serif;font-size:24px;font-style:italic;color:'+pt.color+';margin-bottom:8px">'+pt.name+'</div>';
+  html+='<div style="font-size:13px;line-height:1.65;color:rgba(236,234,246,0.75)">'+pt.desc+'</div>';
+  html+='<div style="margin-top:12px;font-size:11px;color:var(--muted)">Based on '+di+' day'+(di!==1?"s":"")+" of answers \u00b7 evolves as you continue</div></div>";
+  if(top.length){
+    html+='<div style="background:var(--s1);border:1px solid var(--border);border-radius:22px;padding:22px;margin-bottom:14px">';
+    html+='<div style="font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--a1);margin-bottom:16px">TRAIT PROFILE</div>';
+    var mx=top[0]?top[0].val:1;
+    top.forEach(function(t){var m=TRAITS_META[t.key]||{name:t.key,icon:"\u2022"};var pct=Math.max(8,Math.round((t.val/Math.max(mx,1))*100));
+      html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="font-size:11px;color:var(--sub);width:120px;flex-shrink:0;text-align:right">'+m.icon+" "+m.name+'</div><div style="flex:1;height:5px;background:var(--s3);border-radius:3px;overflow:hidden;margin:0 8px"><div style="width:'+pct+'%;height:100%;background:'+pt.color+';border-radius:3px"></div></div><div style="font-size:10px;font-weight:600;color:var(--sub);width:24px;text-align:right">'+t.val+"</div></div>";});
+    html+='</div>';
+  }
+  var moodData=[];
+  days.forEach(function(d){var jd=state.journal[d],sc=jd&&jd.score?jd.score:0,dn=new Date(d+"T12:00:00").toLocaleDateString("en-CA",{weekday:"short"}).toUpperCase().slice(0,2);moodData.push({day:dn,score:sc,date:d});});
+  var hasMood=moodData.some(function(m){return m.score>0;});
+  if(hasMood){
+    html+='<div style="background:var(--s1);border:1px solid var(--border);border-radius:22px;padding:22px;margin-bottom:14px">';
+    html+='<div style="font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--a1);margin-bottom:16px">7-DAY MOOD</div>';
+    html+='<div style="display:flex;align-items:flex-end;gap:8px;height:72px">';
+    moodData.forEach(function(m){var h=m.score>0?Math.round((m.score/5)*100):8;var c=m.score===0?"var(--s3)":m.score<=2?"var(--rose)":m.score===3?"var(--gold)":"var(--sage)";
+      html+='<div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1"><div style="font-size:11px;font-weight:700;color:'+c+'">'+(m.score||"")+'</div><div style="width:100%;background:'+c+';border-radius:4px 4px 0 0;height:'+h+'%;min-height:4px"></div><div style="font-size:9px;color:var(--muted)">'+m.day+'</div></div>';});
+    html+='</div></div>';
+  }
+  var swCount=Object.keys(state.shadow||{}).filter(function(k){return!isNaN(parseInt(k));}).length;
+  if(swCount>0){html+='<div style="background:var(--s1);border:1px solid var(--border);border-radius:22px;padding:22px;margin-bottom:14px"><div style="font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--a1);margin-bottom:12px">SHADOW WORK</div><div style="font-family:\'Fraunces\',serif;font-size:22px;font-style:italic;color:var(--text);margin-bottom:10px">'+swCount+' <span style="font-size:14px;color:var(--sub)">of 60 explored</span></div><div style="height:4px;background:var(--s3);border-radius:2px;overflow:hidden"><div style="width:'+Math.round((swCount/60)*100)+'%;height:100%;background:var(--grad);border-radius:2px"></div></div></div>';}
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"><div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center"><div style="font-size:28px;font-weight:700;font-family:\'Fraunces\',serif;color:var(--a1)">'+di+'</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Days answered</div></div><div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center"><div style="font-size:28px;font-weight:700;font-family:\'Fraunces\',serif;color:var(--gold)">'+(state.streak||0)+'</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Day streak</div></div></div>';
+  document.getElementById("journeyContent").innerHTML=html;
+  showScreen("sJourney");
+}
+
+function generateReport(){showScreen("sLoading");setTimeout(buildReport,2200);}
+function buildReport(){
+  var top=getTop(4),days=getWeekDates(6),moodData=[];
+  days.forEach(function(d){var jd=state.journal[d],sc=jd&&jd.score?jd.score:0,dn=new Date(d+"T12:00:00").toLocaleDateString("en-CA",{weekday:"short"}).toUpperCase();moodData.push({day:dn,score:sc});});
+  var avgM=0,mc=0;moodData.forEach(function(m){if(m.score>0){avgM+=m.score;mc++;}});avgM=mc>0?(avgM/mc).toFixed(1):null;
+  var persona=getPersonalityType(),pt=PERSONALITY_TYPES[persona]||PERSONALITY_TYPES["default"];
+  var html='<div class="rep-hero"><div class="rep-title">Your Mirror</div><div class="rep-sub">'+esc(state.name)+' \u00b7 90 Days</div></div>';
+  html+='<div style="background:linear-gradient(135deg,'+pt.color+'18,'+pt.color+'08);border:1px solid '+pt.color+'28;border-radius:22px;padding:22px;margin-bottom:14px"><div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:'+pt.color+';margin-bottom:10px">YOUR ARCHETYPE</div><div style="font-family:\'Fraunces\',serif;font-size:26px;font-style:italic;color:'+pt.color+';margin-bottom:8px">'+pt.name+'</div><div style="font-size:13px;line-height:1.65;color:rgba(236,234,246,0.8)">'+pt.desc+'</div></div>';
+  html+='<div class="tr-grid">';
+  top.forEach(function(t){var m=TRAITS_META[t.key]||{name:t.key,icon:"\u2726"};var pct=Math.min(100,Math.round((t.val/30)*100));html+='<div class="tr"><div class="tr-ico">'+m.icon+'</div><div class="tr-name">'+m.name+'</div><div class="tr-bar"><div class="tr-fill" style="width:'+pct+'%"></div></div></div>';});
+  html+='</div>';
+  html+='<div class="rep-card"><div class="rep-lbl">What Your Choices Reveal</div><div class="rep-txt">'+insight(top)+'</div></div>';
+  html+='<div class="rep-card"><div class="rep-lbl">Where to Look Next</div><div class="rep-txt">'+challenge(top)+'</div></div>';
+  if(avgM){html+='<div class="rep-card"><div class="rep-lbl">Your Emotional Week</div><div style="font-family:\'Fraunces\',serif;font-size:14px;font-style:italic;color:var(--sub);margin-bottom:14px">Average mood: <span style="color:var(--text);font-size:18px">'+avgM+'/5</span></div>';moodData.forEach(function(m){if(!m.score)return;var w=Math.round((m.score/5)*100);var c=m.score<=2?"var(--rose)":m.score===3?"var(--gold)":"var(--sage)";html+='<div class="mood-row"><div class="mood-day">'+m.day+'</div><div class="mood-bar-w"><div class="mood-bar-f" style="width:'+w+'%;background:'+c+'"></div></div><div class="mood-sc" style="color:'+c+'">'+m.score+'</div></div>';});html+='<div class="rep-txt" style="margin-top:14px">'+moodInsight(avgM,moodData)+'</div></div>';}
+  html+='<div class="rep-card" style="text-align:center"><div class="rep-lbl">Something to Carry</div><div class="rep-txt">'+affirm()+'</div></div>';
+  html+='<div style="background:linear-gradient(160deg,rgba(167,139,250,0.06),rgba(96,165,250,0.03));border:1px solid rgba(167,139,250,0.1);border-radius:18px;padding:22px;margin-bottom:14px;text-align:center"><div style="font-size:26px;margin-bottom:10px">&#127881;</div><div style="font-family:\'Fraunces\',serif;font-size:16px;font-style:italic;line-height:1.75">'+QUOTES[89]+'</div></div>';
+  html+='<button class="rep-btn" onclick="resetJourney()">Begin Again</button><div style="height:40px"></div>';
+  document.getElementById("repContent").innerHTML=html;hideNav();showScreen("sReport");
+}
+
+function getTop(n){var a=[];Object.keys(state.traits).forEach(function(k){a.push({key:k,val:state.traits[k]});});a.sort(function(x,y){return y.val-x.val;});return a.slice(0,n);}
+function insight(top){var tol=state.tolerance,n1=top[0]?TRAITS_META[top[0].key].name.toLowerCase():"awareness",n2=top[1]?TRAITS_META[top[1].key].name.toLowerCase():"depth";var g=["Across ninety days, your choices kept returning to "+n1+" and "+n2+". These are not minor traits -- they shape how you love, decide, and protect yourself.","What surfaced again was a deep "+n1+", paired with "+n2+". Together they tell the story of someone who moves through life with intention."];var b=["Ninety days of honest answers, and the throughline is unmistakable: "+n1+", with "+n2+" close behind. These strengths have carried you -- and they cast shadows worth knowing.","Your dominant patterns are "+n1+" and "+n2+". They show up under pressure and in calm alike. Understanding when they serve you and when they run you is the real work ahead."];var r=["You run on "+n1+". Not good, not bad -- just true. Combined with "+n2+", you have a pattern that works beautifully until it quietly costs you.","Ninety days made it plain: "+n1+" is your default, your reflex, your armor. Nearly every choice traced back to it. What was it protecting you from?"];var p=tol<=3?g:(tol<=7?b:r);return p[Math.floor(Math.random()*p.length)];}
+function challenge(top){var tol=state.tolerance,n1=top[0]?TRAITS_META[top[0].key].name.toLowerCase():"your patterns";var g=["Consider, gently, where "+n1+" might be quietly costing you something. Not all of what it brings serves every season of your life.","What rises up in moments when "+n1+" is not available to you?"];var b=["Your growth edge: noticing when "+n1+" is a conscious choice versus an automatic habit. The space between those two is where freedom lives.","Watch for when "+n1+" fires before you have decided anything. Chosen or conditioned? That distinction reshapes everything."];var r=["The honest truth: "+n1+" has become a sophisticated way of avoiding something harder. Face what is beneath it.","Your "+n1+" has served you. Now it may be a groove so deep you mistake it for identity. You can choose differently."];var p=tol<=3?g:(tol<=7?b:r);return p[Math.floor(Math.random()*p.length)];}
+function moodInsight(avg,data){var low=data.filter(function(d){return d.score>0&&d.score<=2;}).length;if(!avg)return"Your emotional landscape was complex. That is not a problem -- it is information.";avg=parseFloat(avg);if(avg>=4)return"A strong week emotionally. Whatever you are doing to protect your energy -- keep it.";if(avg>=3)return"A balanced week. Steady is underrated. You kept going regardless.";if(low>=3)return"Several hard days this week. Your scores are worth listening to. Rest is productive right now.";return"A mixed week -- some bright spots, some harder stretches. You showed up regardless.";}
+function affirm(){var a=["You are not your patterns. You are the one who can finally see them.","Knowing yourself was never the destination. It is the only journey that matters.","The version of you still becoming is the most interesting one you will ever meet.","You outgrow what no longer fits. That is not loss. That is growth.","Clarity about who you are is not vanity. It is the ground everything else is built on.","The bravest thing is to keep looking honestly at yourself. You just did, for ninety days."];return a[Math.floor(Math.random()*a.length)];}
+function resetJourney(){if(!confirm("Start a fresh 90-day journey? Your current reflection will be cleared."))return;state.answers={};state.traits={};state.dayIndex=0;state.streak=0;state.lastPlayed="";state.journal={};state.shadow={};state.weeklyShown={};ss(state);showNav();showGame();}
+if(state.name){showNav();showGame();}else{showScreen("sSplash");}
+
+</script>
+</body>
+</html>

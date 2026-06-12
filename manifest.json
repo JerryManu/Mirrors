@@ -1,0 +1,14 @@
+{
+  "name": "Mirrors",
+  "short_name": "Mirrors",
+  "description": "A 90-day journey of self-discovery",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#08080c",
+  "theme_color": "#08080c",
+  "orientation": "portrait",
+  "icons": [
+    {"src":"https://placehold.co/192x192/08080c/a78bfa?text=M","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"https://placehold.co/512x512/08080c/a78bfa?text=M","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}
